@@ -10,17 +10,19 @@ class MyFrame extends JFrame
         Container c = this.getContentPane();
         JPanel p;
 
-        switch (frame)
+        switch (frame.toUpperCase())
         {
-            case "turing":
+            case "TURING":
                 p = new TuringPanel();
                 break;
 
-            case "creation":
-                p = new CreationPanel();
+            case "CREATE":
+            case "EDIT":
+            case "SHOW":
+                p = new FilePanel(frame);
                 break;
 
-            case "login":
+            case "LOGIN":
             default:
                 p = new LoginPanel();
                 break;

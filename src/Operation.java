@@ -5,6 +5,8 @@ public class Operation implements Serializable
     private opCode code;
     private String username;
     private String password;
+    private String filename;
+    private int section;
 
     public Operation(String username)
     {
@@ -33,5 +35,21 @@ public class Operation implements Serializable
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public int getSection() {
+        return section;
+    }
+
+    public void setSection(int nsection) {
+        this.section = nsection;
     }
 }

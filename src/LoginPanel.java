@@ -84,21 +84,26 @@ public class LoginPanel extends JPanel implements ActionListener
                 {
                     switch (MainClient.loginUser())
                     {
-                        case 1:
+                        case OP_OK:
                         {
                             //nascondo il frame di login
-                            MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(this);
-                            old_f.setVisible(false);
-                            //mostro il nuovo frame, contenente la chat e i button per le richieste
-                            MyFrame f = new MyFrame("turing");
+                            Utils.showNextFrame("TURING",this);
                             break;
                         }
 
-                        case 0:
-                            JOptionPane.showMessageDialog(this,"Utente inesistente o già loggato","WARNING",JOptionPane.WARNING_MESSAGE);
+                        case ERR_USER_UNKNOWN:
+                            JOptionPane.showMessageDialog(this,"Utente inesistente","WARNING",JOptionPane.WARNING_MESSAGE);
                             break;
 
-                        case -1:
+                        case ERR_WRONG_PASSWORD:
+                            JOptionPane.showMessageDialog(this,"Password errata","WARNING",JOptionPane.WARNING_MESSAGE);
+                            break;
+
+                        case ERR_USER_ALREADY_LOGGED:
+                            JOptionPane.showMessageDialog(this,"Utente già connesso","WARNING",JOptionPane.WARNING_MESSAGE);
+                            break;
+
+                        case OP_FAIL:
                             JOptionPane.showMessageDialog(this,"Errore nella comunicazione col server","ERROR",JOptionPane.ERROR_MESSAGE);
                             break;
                     }

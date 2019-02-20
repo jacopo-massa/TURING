@@ -1,18 +1,11 @@
-public class User
+public class UserInfo
 {
-    private String username;
     private String password;
     private int online;
 
-    public User(String username, String password)
+    public UserInfo(String password)
     {
-        this.username = username;
         this.password = password;
-        this.online = 1;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public String getPassword() {

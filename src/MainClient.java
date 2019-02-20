@@ -21,20 +21,15 @@ public class MainClient
         new MyFrame("login");
     }
 
-    public static boolean sendReq(opCode code)
+    public static boolean sendReq(Operation op)
     {
-        //creo l'oggetto Operation da mandare, con opCode = LOGIN
-        Operation op = new Operation(username);
-        op.setCode(code);
-        op.setPassword(password);
-
         try
         {
             Utils.sendObject(clientSocketChannel,op);
         }
         catch(IOException ioe)
         {
-            System.err.println("Error in sending op LOGIN");
+            System.err.println("Error in sending operation " + op.getCode());
             ioe.printStackTrace();
             return false;
         }
@@ -53,8 +48,6 @@ public class MainClient
                 clientSocketChannel.close();
                 return null;
             }
-            else if(!answer.getCode().equals(opCode.OP_OK))
-                return null;
             else
                 return answer;
 
@@ -103,7 +96,7 @@ public class MainClient
         }
     }
 
-    public static int loginUser()
+    public static opCode loginUser()
     {
         address = new InetSocketAddress("127.0.0.1",PORT);
 
@@ -122,34 +115,64 @@ public class MainClient
         {
             System.err.println("Error in connecting to server");
             ioe.printStackTrace();
-            return -1;
+            return opCode.OP_FAIL;
         }
 
-        sendReq(opCode.LOGIN);
+        Operation request = new Operation(username);
+        request.setPassword(password);
+        request.setCode(opCode.LOGIN);
+        sendReq(request);
 
-        if(getAnswer() == null)
-            return 0;
+        Operation answer = getAnswer();
+        if(answer == null)
+            return opCode.OP_FAIL;
         else
-            return 1;
+            return answer.getCode();
     }
 
-    public static int logoutUser()
+    public static opCode logoutUser()
     {
-        sendReq(opCode.LOGOUT);
-
-        if(getAnswer() == null)
-            return 0;
+        Operation request = new Operation(username);
+        request.setPassword(password);
+        request.setCode(opCode.LOGOUT);
+        sendReq(request);
+        Operation answer = getAnswer();
+        if(answer == null)
+            return opCode.OP_FAIL;
         else
-            return 1;
+        {
+            try { clientSocketChannel.close(); }
+            catch(IOException ioe)
+            {
+                System.err.println("Error in closing clientSocketChannel");
+                ioe.printStackTrace();
+                return opCode.OP_FAIL;
+            }
+
+            return answer.getCode();
+        }
+
     }
 
-    public static int createDocument(String name, int nsection)
+    public static opCode manageDocument(opCode code, String name, int nsection)
     {
-        sendReq(opCode.CREATE);
-
-        if(getAnswer() == null)
-            return 0;
+        Operation request = new Operation(username);
+        request.setPassword(password);
+        if(nsection != 0)
+        {
+            request.setCode(code);
+            request.setSection(nsection);
+        }
         else
-            return 1;
+            request.setCode(opCode.SHOW_ALL);
+
+        request.setFilename(name);
+        sendReq(request);
+
+        Operation answer = getAnswer();
+        if(answer == null)
+            return opCode.OP_FAIL;
+        else
+            return answer.getCode();
     }
 }

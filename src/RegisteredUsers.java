@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RegisteredUsers extends RemoteServer implements IntRegistration
 {
-    private ConcurrentHashMap<String,User> users;
+    private ConcurrentHashMap<String, UserInfo> users;
     public RegisteredUsers()
     {
         this.users = new ConcurrentHashMap<>();
@@ -18,7 +18,7 @@ public class RegisteredUsers extends RemoteServer implements IntRegistration
         if(users.containsKey(username))
             return false;
 
-        User u = new User(username, password);
+        UserInfo u = new UserInfo(password);
         users.putIfAbsent(username, u);
         return true;
     }
@@ -32,7 +32,7 @@ public class RegisteredUsers extends RemoteServer implements IntRegistration
         return true;
     }
 
-    User getUser(String username, String password)
+    UserInfo getUser(String username, String password)
     {
         if(!checkData(username,password))
             return null;
@@ -53,6 +53,7 @@ public class RegisteredUsers extends RemoteServer implements IntRegistration
         return true;
     }
 
+    /* controlla la consistenza e l'esistenza dell'username e della password */
     private boolean checkData(String username, String password)
     {
         return (username != null && password != null && users.containsKey(username));

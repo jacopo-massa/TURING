@@ -1,3 +1,5 @@
+import com.sun.tools.javac.Main;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -7,7 +9,9 @@ public class TuringPanel extends JPanel implements ActionListener
     private JButton logoutButton;
     private JButton sendButton;
     private JButton createButton;
+    private JButton editButton;
     private JButton endEditButton;
+    private JButton showButton;
 
     private JTextArea receiveArea;
     private JTextField sendArea;
@@ -40,19 +44,25 @@ public class TuringPanel extends JPanel implements ActionListener
 
         /* --- EAST PANEL --- */
         JPanel eastPanel = new JPanel();
-        eastPanel.setLayout(new GridLayout(3,1));
+        eastPanel.setLayout(new GridLayout(5,1));
 
-        createButton = new JButton("Create Document");
+        createButton = new JButton("Create");
+        editButton = new JButton("Edit");
         endEditButton = new JButton("End Edit");
+        endEditButton.setEnabled(false);
+        showButton = new JButton("Show");
         logoutButton = new JButton("Logout");
 
         createButton.addActionListener(this);
+        editButton.addActionListener(this);
         endEditButton.addActionListener(this);
+        showButton.addActionListener(this);
         logoutButton.addActionListener(this);
 
-
         eastPanel.add(createButton);
+        eastPanel.add(editButton);
         eastPanel.add(endEditButton);
+        eastPanel.add(showButton);
         eastPanel.add(logoutButton);
 
 
@@ -71,27 +81,26 @@ public class TuringPanel extends JPanel implements ActionListener
             {
                 case "LOGOUT":
                 {
-                    if(MainClient.logoutUser() == 1)
+                    switch(MainClient.logoutUser())
                     {
-                        //nascondo il frame turing
-                        MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(this);
-                        old_f.setVisible(false);
-                        //mostro il frame di login
-                        MyFrame f = new MyFrame("login");
-                    }
-                    else
-                        JOptionPane.showMessageDialog(this,"Errore nella disconnessione","ERROR",JOptionPane.ERROR_MESSAGE);
+                        case OP_OK:
+                        {
+                            Utils.showNextFrame("login",this);
+                            break;
+                        }
 
+                        case OP_FAIL:
+                            JOptionPane.showMessageDialog(this,"Errore nella comunicazione col server","ERROR",JOptionPane.ERROR_MESSAGE);
+                            break;
+                    }
                     break;
                 }
 
-                case "CREATE DOCUMENT":
+                case "CREATE":
+                case "EDIT":
+                case "SHOW":
                 {
-                    //nascondo il frame turing
-                    MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(this);
-                    old_f.setVisible(false);
-                    //mostro il frame di login
-                    MyFrame f = new MyFrame("creation");
+                    Utils.showNextFrame(cmd,this);
                     break;
                 }
             }

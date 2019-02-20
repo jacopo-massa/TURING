@@ -1,3 +1,5 @@
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -38,5 +40,14 @@ public class Utils
             return ret;
         }
         return null;
+    }
+
+    public static void showNextFrame(String frame, Component c)
+    {
+        //nascondo il frame corrente
+        MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(c);
+        old_f.setVisible(false);
+        //mostro il frame successivo
+        MyFrame f = new MyFrame(frame);
     }
 }
