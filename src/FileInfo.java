@@ -4,14 +4,14 @@ public class FileInfo
 {
     private String owner;
     private int nsections;
-    private ReentrantLock[] sections;
+    private boolean[] sections;
 
 
     public FileInfo(String owner, int nsections)
     {
         this.owner = owner;
         this.nsections = nsections;
-        sections = new ReentrantLock[nsections];
+        sections = new boolean[nsections];
     }
 
     public String getOwner() {
@@ -24,28 +24,25 @@ public class FileInfo
 
     public void lockSection(int section)
     {
-        sections[section].tryLock();
+        sections[section] = true;
     }
     
     public void unlockSection(int section)
     {
-        sections[section].unlock();    
+        sections[section] = false;
     }
     
     public int getNumLockedSections()
     {
         int counter = 0;
-        for (ReentrantLock l: sections)
-        {
-            if(l.isLocked())
-                counter++;
-        }
+        for (boolean l: sections)
+            if(l) counter++;
 
         return counter;
     }
 
     public boolean isLocked(int section)
     {
-        return sections[section].isLocked();
+        return sections[section];
     }
 }

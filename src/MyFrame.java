@@ -17,9 +17,12 @@ class MyFrame extends JFrame
                 break;
 
             case "CREATE":
+                p = new CreationPanel();
+                break;
+
             case "EDIT":
             case "SHOW":
-                p = new FilePanel(frame);
+                p = new ManagePanel(frame);
                 break;
 
             case "LOGIN":

@@ -1,8 +1,8 @@
-import com.sun.tools.javac.Main;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class TuringPanel extends JPanel implements ActionListener
 {
@@ -18,6 +18,8 @@ public class TuringPanel extends JPanel implements ActionListener
 
     private String usr;
     private String psw;
+
+    static ArrayList<String> clientFiles;
 
     public TuringPanel()
     {
@@ -85,7 +87,7 @@ public class TuringPanel extends JPanel implements ActionListener
                     {
                         case OP_OK:
                         {
-                            Utils.showNextFrame("login",this);
+                            Utils.showNextFrame("LOGIN",this);
                             break;
                         }
 
@@ -96,9 +98,41 @@ public class TuringPanel extends JPanel implements ActionListener
                     break;
                 }
 
-                case "CREATE":
                 case "EDIT":
                 case "SHOW":
+                {
+                    //richiedo al server la lista di file gestibili
+
+                    Operation request = new Operation(usr);
+                    request.setPassword(psw);
+                    request.setCode(opCode.FILE_LIST);
+                    MainClient.sendReq(request);
+
+                    try
+                    {
+                        clientFiles = (ArrayList<String>) Utils.recvObject(MainClient.clientSocketChannel);
+                    }
+                    catch(ClassNotFoundException | IOException ex)
+                    {
+                        System.err.println("Can't download file list");
+                        ex.printStackTrace();
+                    }
+
+                    opCode ans = MainClient.getAnswer();
+
+                    if(ans != opCode.OP_OK)
+                    {
+                        JOptionPane.showMessageDialog(this,"Lista dei file gestibili non scaricata correttamente","WARNING",JOptionPane.WARNING_MESSAGE);
+                        break;
+                    }
+
+                    if(clientFiles.size() == 0)
+                    {
+                        JOptionPane.showMessageDialog(this,"Nessun file da gestire!","WARNING",JOptionPane.WARNING_MESSAGE);
+                        break;
+                    }
+                }
+                case "CREATE":
                 {
                     Utils.showNextFrame(cmd,this);
                     break;

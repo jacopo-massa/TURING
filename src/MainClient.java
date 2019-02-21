@@ -3,6 +3,9 @@ import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.*;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.StringTokenizer;
 
 
 public class MainClient
@@ -10,15 +13,15 @@ public class MainClient
     public static int REGISTRATION_PORT = 5000;
     public static int PORT = 5001;
 
-    private static InetSocketAddress address;
-    private static SocketChannel clientSocketChannel;
+    static InetSocketAddress address;
+    static SocketChannel clientSocketChannel;
 
     static String username;
     static String password;
 
     public static void main(String[] args)
     {
-        new MyFrame("login");
+        new MyFrame("LOGIN");
     }
 
     public static boolean sendReq(Operation op)
@@ -37,22 +40,22 @@ public class MainClient
         return true;
     }
 
-    public static Operation getAnswer()
+    public static opCode getAnswer()
     {
         try
         {
-            Operation answer = (Operation) Utils.recvObject(clientSocketChannel);
+            opCode answer = Utils.recvOpCode(clientSocketChannel);
             if(answer == null)
             {
                 System.out.println("CHIUSO");
                 clientSocketChannel.close();
-                return null;
+                return opCode.OP_FAIL;
             }
             else
                 return answer;
 
         }
-        catch (ClassNotFoundException | IOException | NullPointerException e)
+        catch (IOException | NullPointerException e)
         {
             System.err.println("Error in reading object");
             e.printStackTrace();
@@ -123,11 +126,7 @@ public class MainClient
         request.setCode(opCode.LOGIN);
         sendReq(request);
 
-        Operation answer = getAnswer();
-        if(answer == null)
-            return opCode.OP_FAIL;
-        else
-            return answer.getCode();
+        return getAnswer();
     }
 
     public static opCode logoutUser()
@@ -136,25 +135,35 @@ public class MainClient
         request.setPassword(password);
         request.setCode(opCode.LOGOUT);
         sendReq(request);
-        Operation answer = getAnswer();
-        if(answer == null)
-            return opCode.OP_FAIL;
-        else
+        opCode answer = getAnswer();
+        if(answer == opCode.OP_FAIL)
         {
             try { clientSocketChannel.close(); }
             catch(IOException ioe)
             {
                 System.err.println("Error in closing clientSocketChannel");
                 ioe.printStackTrace();
-                return opCode.OP_FAIL;
             }
-
-            return answer.getCode();
         }
 
+        return answer;
     }
 
-    public static opCode manageDocument(opCode code, String name, int nsection)
+    public static opCode createDocument(String name, int nsection)
+    {
+        Operation request = new Operation(username);
+        request.setPassword(password);
+        request.setCode(opCode.CREATE);
+
+        request.setFilename(name);
+        request.setSection(nsection);
+
+        sendReq(request);
+
+        return getAnswer();
+    }
+
+    public static opCode manageDocument(opCode code, String name, String owner, int nsection)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
@@ -167,12 +176,9 @@ public class MainClient
             request.setCode(opCode.SHOW_ALL);
 
         request.setFilename(name);
+        request.setOwner(owner);
         sendReq(request);
 
-        Operation answer = getAnswer();
-        if(answer == null)
-            return opCode.OP_FAIL;
-        else
-            return answer.getCode();
+        return getAnswer();
     }
 }

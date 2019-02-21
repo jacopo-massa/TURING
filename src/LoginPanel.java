@@ -64,10 +64,7 @@ public class LoginPanel extends JPanel implements ActionListener
                     {
                         case 1: {
                             //nascondo il frame di login
-                            MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(this);
-                            old_f.setVisible(false);
-                            //mostro il nuovo frame, contenente la chat e i button per le richieste
-                            MyFrame f = new MyFrame("turing");
+                            Utils.showNextFrame("TURING",this);
                             break;
                         }
 

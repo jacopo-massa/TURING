@@ -6,6 +6,7 @@ public class Operation implements Serializable
     private String username;
     private String password;
     private String filename;
+    private String owner;
     private int section;
 
     public Operation(String username)
@@ -43,6 +44,14 @@ public class Operation implements Serializable
 
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public int getSection() {

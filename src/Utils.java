@@ -50,4 +50,46 @@ public class Utils
         //mostro il frame successivo
         MyFrame f = new MyFrame(frame);
     }
+
+    public static void sendOpCode(SocketChannel socket, opCode code) throws IOException
+    {
+        ByteBuffer dim = ByteBuffer.allocate(4);
+        ByteBuffer codeBuffer;
+
+        //invio prima la dimensione del code.
+
+        dim.clear();
+        dim.putInt(code.toString().length());
+        dim.flip();
+
+        socket.write(dim);
+
+        //invio il code come stringa
+        byte[] codeBytes = code.toString().getBytes();
+        codeBuffer = ByteBuffer.wrap(codeBytes);
+
+        socket.write(codeBuffer);
+    }
+
+    public static opCode recvOpCode(SocketChannel socket) throws IOException
+    {
+        //leggo la dimensione del code che sto per ricevere
+        ByteBuffer dimBuffer = ByteBuffer.wrap(new byte[4]);
+        ByteBuffer codeBuffer;
+
+        socket.read(dimBuffer);
+        dimBuffer.flip();
+        int dim = dimBuffer.getInt();
+        dimBuffer.clear();
+
+        codeBuffer = ByteBuffer.allocate(dim);
+        socket.read(codeBuffer);
+        codeBuffer.flip();
+
+        byte[] codeBytes = new byte[codeBuffer.remaining()];
+        codeBuffer.get(codeBytes);
+
+        return opCode.valueOf(new String(codeBytes));
+
+    }
 }

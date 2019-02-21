@@ -1,33 +1,46 @@
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.nio.channels.*;
-import java.nio.file.*;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 public class MainServer
 {
     public static int REGISTRATION_PORT = 5000;
     public static int PORT = 5001;
-    private static String SERVER_USER = "server";
     private static String USER_FILES_PATH = "./turing_files/";
+
+    //collezione degli utenti registrati a TURING
+    private static RegisteredUsers registeredUsers;
 
     private static String getPath(String username, String filename, int section)
     {
         return USER_FILES_PATH + username + "/" + filename + ((section == 0) ? "" : ("/" + filename + "_" + section));
     }
 
+    private static boolean checkPermission(String username, String password, String owner, String filename)
+    {
+        return registeredUsers.getUser(username,password).canEdit(filename + "_" + owner);
+    }
+
     public static void main(String[] args)
     {
-        //collezione degli utenti registrati a TURING
-        RegisteredUsers registeredUsers = new RegisteredUsers();
-
+        registeredUsers = new RegisteredUsers();
         //collezione dei file caricati dagli utenti su TURING
         ConcurrentHashMap<String, FileInfo> userFiles = new ConcurrentHashMap<>();
 
@@ -123,7 +136,7 @@ public class MainServer
                     {
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
                         Operation op_in;
-                        Operation op_out = new Operation(SERVER_USER);
+                        opCode answerCode = opCode.OP_FAIL;
 
                         try
                         {
@@ -133,12 +146,11 @@ public class MainServer
                         }
                         catch(ClassNotFoundException | NullPointerException e)
                         {
-                            System.out.println("IN READ:" + op_out.getCode());
                             System.err.println("Error on reading Operation " + e.toString() + " " + e.getMessage());
                             e.printStackTrace();
                             //in caso di errore sovrascrivo il codice con OP_FAIL
-                            op_out.setCode(opCode.OP_FAIL);
-                            key.attach(op_out);
+                            answerCode = opCode.OP_FAIL;
+                            key.attach(answerCode);
                             key.interestOps(SelectionKey.OP_WRITE);
                             continue;
                         }
@@ -149,24 +161,53 @@ public class MainServer
                         System.out.println("OPERAZIONE: " + op_in.getCode());
                         switch (op_in.getCode())
                         {
+
+                            case FILE_LIST:
+                            {
+                                /* mando all'utente la lista di file che può gestire,
+                                   impostando l'esito di tale invio, che manderò successivamente
+                                 */
+                                try
+                                {
+                                    ArrayList<String> nameToSend = new ArrayList<>();
+                                    for (String s: registeredUsers.getUser(usr, psw).getFiles())
+                                    {
+                                        /* costruisco l'opportuno pattern che il client leggerà
+                                           nomefile_owner_numsezioni
+                                         */
+
+                                        nameToSend.add(s + "_" + userFiles.get(s).getNsections());
+                                    }
+                                    Utils.sendObject(clientSocketChannel, nameToSend);
+                                    answerCode = opCode.OP_OK;
+                                }
+                                catch(IOException ioe)
+                                { answerCode = opCode.ERR_FILE_LIST; }
+                                break;
+                            }
+
                             case LOGIN:
                             {
                                 UserInfo userInfo = registeredUsers.getUser(usr,psw);
                                 if(userInfo == null)
-                                    op_out.setCode(opCode.ERR_USER_UNKNOWN);
+                                    answerCode = opCode.ERR_USER_UNKNOWN;
                                 else if(!userInfo.getPassword().equals(psw))
-                                    op_out.setCode(opCode.ERR_WRONG_PASSWORD);
+                                    answerCode = opCode.ERR_WRONG_PASSWORD;
                                 else if(userInfo.isOnline())
-                                    op_out.setCode(opCode.ERR_USER_ALREADY_LOGGED);
+                                    answerCode = opCode.ERR_USER_ALREADY_LOGGED;
                                 else if(registeredUsers.setStatus(usr,psw,1))
                                 {
-                                    op_out.setCode(opCode.OP_OK);
+                                    answerCode = opCode.OP_OK;
 
-                                    /* creo la directory che conterrà tutti i file creati da questo utente */
+                                    /* creo la directory (solo se non esiste già)
+                                       che conterrà tutti i file creati da questo utente */
+
                                     Files.createDirectories(Paths.get(USER_FILES_PATH + usr));
+
+                                    answerCode = opCode.OP_OK;
                                 }
                                 else
-                                    op_out.setCode(opCode.OP_FAIL);
+                                    answerCode = opCode.OP_FAIL;
                                 break;
                             }
 
@@ -175,16 +216,16 @@ public class MainServer
                                 UserInfo userInfo = registeredUsers.getUser(usr,psw);
                                 if(registeredUsers.setStatus(usr,psw,0))
                                 {
-                                    op_out.setCode(opCode.OP_OK);
+                                    answerCode = opCode.OP_OK;
                                     //mando la risposta al client (con OP_OK)
-                                    Utils.sendObject(clientSocketChannel,op_out);
+                                    Utils.sendOpCode(clientSocketChannel,answerCode);
                                     //chiudo la socket
                                     clientSocketChannel.close();
                                     key.cancel();
                                     continue;
                                 }
                                 else
-                                    op_out.setCode(opCode.OP_FAIL);
+                                    answerCode = opCode.OP_FAIL;
                             }
 
                             case CREATE:
@@ -196,9 +237,9 @@ public class MainServer
                                 //controllo che non esista un file con lo stesso nome, creato dallo stesso utente
                                 if(userFiles.containsKey(collectionFileName))
                                 {
-                                    op_out.setCode(opCode.ERR_FILE_ALREADY_EXISTS);
+                                    answerCode = opCode.ERR_FILE_ALREADY_EXISTS;
                                 }
-                                else //se non esiste ,aggiungo il file alla collezione gestita dal server
+                                else //se non esiste, aggiungo il file alla collezione gestita dal server
                                 {
                                     //creo la directory che conterrà le sezioni del file 'filename'
                                     Files.createDirectories(Paths.get(getPath(usr,filename,0)));
@@ -209,7 +250,7 @@ public class MainServer
                                         File sec = new File(getPath(usr,filename,i) + ".txt");
                                         if(!sec.createNewFile())
                                         {
-                                            op_out.setCode(opCode.OP_FAIL);
+                                            answerCode = opCode.OP_FAIL;
                                             break;
                                         }
                                     }
@@ -217,26 +258,36 @@ public class MainServer
                                     //creo la struttura dati contenente le info del file, da aggiungere alla collezione
                                     FileInfo fileInfo = new FileInfo(usr,nsections);
                                     userFiles.putIfAbsent(collectionFileName, fileInfo);
-                                    op_out.setCode(opCode.OP_OK);
+
+                                    //aggiungo il file alla lista di quelli gestibili dall'utente che l'ha creato
+                                    registeredUsers.getUser(usr,psw).addFile(collectionFileName);
+                                    answerCode = opCode.OP_OK;
                                 }
                                 break;
                             }
 
-                            case OP_FAIL:
+                            case SHOW:
+                            case SHOW_ALL:
+                            case EDIT:
+                            {
+                                answerCode = opCode.OP_OK;
+                                break;
+                            }
+
                             default:
-                                op_out.setCode(opCode.OP_FAIL);
+                                answerCode = opCode.OP_FAIL;
                                 break;
                         }
 
-                        key.attach(op_out);
+                        key.attach(answerCode);
                         key.interestOps(SelectionKey.OP_WRITE);
                     }
                     else if (key.isWritable()) //sto per scrivere su una socket
                     {
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
-                        Operation op = (Operation) key.attachment();
+                        opCode code = (opCode) key.attachment();
 
-                        Utils.sendObject(clientSocketChannel,op);
+                        Utils.sendOpCode(clientSocketChannel,code);
                         key.interestOps(SelectionKey.OP_READ);
                     }
                 }
