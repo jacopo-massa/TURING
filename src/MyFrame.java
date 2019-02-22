@@ -4,28 +4,29 @@ import javax.swing.*;
 
 class MyFrame extends JFrame
 {
-    MyFrame(String frame)
+    MyFrame(frameCode frame)
     {
         super("TURING");
         Container c = this.getContentPane();
         JPanel p;
 
-        switch (frame.toUpperCase())
+        switch (frame)
         {
-            case "TURING":
-                p = new TuringPanel();
+            case TURING:
+            case TURING_EDIT:
+                p = new TuringPanel(frame);
                 break;
 
-            case "CREATE":
+            case CREATE:
                 p = new CreationPanel();
                 break;
 
-            case "EDIT":
-            case "SHOW":
+            case EDIT:
+            case SHOW:
                 p = new ManagePanel(frame);
                 break;
 
-            case "LOGIN":
+            case LOGIN:
             default:
                 p = new LoginPanel();
                 break;

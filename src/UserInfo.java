@@ -5,11 +5,15 @@ public class UserInfo
     private String password;
     private int online;
     private ArrayList<String> files;
+    private String editingFilename;
+    private int editingSection;
 
     public UserInfo(String password)
     {
         this.password = password;
         this.files = new ArrayList<>();
+        this.editingFilename = "";
+        this.editingSection = 0;
     }
 
     public ArrayList<String> getFiles() {
@@ -47,5 +51,21 @@ public class UserInfo
 
     public void setOffline() {
         this.online = 0;
+    }
+
+    public String getEditingFilename() {
+        return editingFilename;
+    }
+
+    public void setEditingFilename(String editingFilename) {
+        this.editingFilename = editingFilename;
+    }
+
+    public int getEditingSection() {
+        return editingSection;
+    }
+
+    public void setEditingSection(int editingSection) {
+        this.editingSection = editingSection;
     }
 }

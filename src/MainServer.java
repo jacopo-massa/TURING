@@ -2,45 +2,33 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class MainServer
 {
-    public static int REGISTRATION_PORT = 5000;
-    public static int PORT = 5001;
-    private static String USER_FILES_PATH = "./turing_files/";
-
-    //collezione degli utenti registrati a TURING
-    private static RegisteredUsers registeredUsers;
-
     private static String getPath(String username, String filename, int section)
     {
-        return USER_FILES_PATH + username + "/" + filename + ((section == 0) ? "" : ("/" + filename + "_" + section));
-    }
-
-    private static boolean checkPermission(String username, String password, String owner, String filename)
-    {
-        return registeredUsers.getUser(username,password).canEdit(filename + "_" + owner);
+        return Utils.SERVER_FILES_PATH + username + "/" + filename + ((section == 0) ? "" : ("/" + filename + section + ".txt"));
     }
 
     public static void main(String[] args)
     {
-        registeredUsers = new RegisteredUsers();
+        //collezione degli utenti registrati a TURING
+        RegisteredUsers registeredUsers = new RegisteredUsers();
         //collezione dei file caricati dagli utenti su TURING
         ConcurrentHashMap<String, FileInfo> userFiles = new ConcurrentHashMap<>();
 
@@ -50,6 +38,7 @@ public class MainServer
         {
             IntRegistration stub = (IntRegistration) UnicastRemoteObject.exportObject(registeredUsers,0);
 
+            int REGISTRATION_PORT = 5000;
             LocateRegistry.createRegistry(REGISTRATION_PORT);
             Registry r=LocateRegistry.getRegistry(REGISTRATION_PORT);
 
@@ -65,20 +54,9 @@ public class MainServer
          */
 
         Runtime.getRuntime().addShutdownHook(
-                new Thread(new Runnable()
-                {
-                    public void run()
-                    {
-                        try
-                        {
-                            Files.walk(Paths.get(USER_FILES_PATH))
-                                    .sorted(Comparator.reverseOrder())
-                                    .map(Path::toFile)
-                                    .forEach(File::delete);
-                        }
-                        catch(IOException ioe) {}
-
-                    }
+                new Thread(() -> {
+                    try { Utils.deleteDirectory(Utils.SERVER_FILES_PATH); }
+                    catch(IOException ioe) {System.err.println("Can't delete " + Utils.SERVER_FILES_PATH); }
                 }));
 
         /* Creazione del socket TCP per tutte le altre richieste dei client */
@@ -89,6 +67,7 @@ public class MainServer
         {
             serverSocketChannel = ServerSocketChannel.open();
             ServerSocket serverSocket = serverSocketChannel.socket();
+            int PORT = 5001;
             serverSocket.bind(new InetSocketAddress("127.0.0.1", PORT));
             System.out.println("Server aperto su porta " + PORT);
 
@@ -197,12 +176,10 @@ public class MainServer
                                     answerCode = opCode.ERR_USER_ALREADY_LOGGED;
                                 else if(registeredUsers.setStatus(usr,psw,1))
                                 {
-                                    answerCode = opCode.OP_OK;
-
                                     /* creo la directory (solo se non esiste già)
                                        che conterrà tutti i file creati da questo utente */
 
-                                    Files.createDirectories(Paths.get(USER_FILES_PATH + usr));
+                                    Files.createDirectories(Paths.get(Utils.SERVER_FILES_PATH + usr));
 
                                     answerCode = opCode.OP_OK;
                                 }
@@ -213,12 +190,20 @@ public class MainServer
 
                             case LOGOUT:
                             {
-                                UserInfo userInfo = registeredUsers.getUser(usr,psw);
                                 if(registeredUsers.setStatus(usr,psw,0))
                                 {
                                     answerCode = opCode.OP_OK;
+
                                     //mando la risposta al client (con OP_OK)
-                                    Utils.sendOpCode(clientSocketChannel,answerCode);
+                                    Utils.sendBytes(clientSocketChannel,answerCode.toString().getBytes());
+
+                                    //sblocco l'eventuale sezione di un file in modifica dall'utente
+                                    String editingFilename = registeredUsers.getUser(usr,psw).getEditingFilename();
+                                    int editingSection = registeredUsers.getUser(usr,psw).getEditingSection();
+
+                                    if(!editingFilename.equals(""))
+                                        userFiles.get(editingFilename).unlockSection(editingSection - 1);
+
                                     //chiudo la socket
                                     clientSocketChannel.close();
                                     key.cancel();
@@ -226,6 +211,8 @@ public class MainServer
                                 }
                                 else
                                     answerCode = opCode.OP_FAIL;
+
+                                break;
                             }
 
                             case CREATE:
@@ -244,13 +231,16 @@ public class MainServer
                                     //creo la directory che conterrà le sezioni del file 'filename'
                                     Files.createDirectories(Paths.get(getPath(usr,filename,0)));
 
+
+                                    boolean err = false;
+
                                     //creo le sezioni del file
                                     for (int i = 1; i <= nsections; i++)
                                     {
-                                        File sec = new File(getPath(usr,filename,i) + ".txt");
+                                        File sec = new File(getPath(usr,filename,i));
                                         if(!sec.createNewFile())
                                         {
-                                            answerCode = opCode.OP_FAIL;
+                                            err = true;
                                             break;
                                         }
                                     }
@@ -261,21 +251,88 @@ public class MainServer
 
                                     //aggiungo il file alla lista di quelli gestibili dall'utente che l'ha creato
                                     registeredUsers.getUser(usr,psw).addFile(collectionFileName);
-                                    answerCode = opCode.OP_OK;
+                                    answerCode = (err) ? opCode.OP_FAIL : opCode.OP_OK;
                                 }
                                 break;
                             }
 
                             case SHOW:
-                            case SHOW_ALL:
                             case EDIT:
                             {
-                                answerCode = opCode.OP_OK;
+                                String filename = op_in.getFilename();
+                                String owner = op_in.getOwner();
+                                String collectionFilename = filename + "_" + owner;
+                                int section = op_in.getSection();
+
+                                if(registeredUsers.getUser(usr,psw).canEdit(collectionFilename)) //utente con permessi
+                                {
+                                    if(!userFiles.get(collectionFilename).isLocked(section-1)) //sezione non lockata
+                                    {
+                                        if(op_in.getCode().equals(opCode.EDIT))
+                                        {
+                                            //lock sulla sezione
+                                            userFiles.get(collectionFilename).lockSection(section-1);
+
+                                            //salvo quale file l'utente sta modificando
+                                            registeredUsers.getUser(usr,psw).setEditingFilename(collectionFilename);
+                                            registeredUsers.getUser(usr,psw).setEditingSection(section);
+                                        }
+                                        answerCode = opCode.OP_OK;
+                                    }
+                                    else
+                                        answerCode = opCode.SECTION_EDITING;
+
+                                }
+                                else
+                                    answerCode = opCode.ERR_PERMISSION_DENIED;
+
                                 break;
                             }
 
+                            case END_EDIT:
+                            {
+                                String filename = op_in.getFilename();
+                                String owner = op_in.getOwner();
+                                String collectionFilename = filename + "_" + owner;
+                                int section = op_in.getSection();
+
+                                //tengo traccia del fatto che l'utente non sta più editando
+                                registeredUsers.getUser(usr,psw).setEditingFilename("");
+
+                                //ricevo il nuovo file dal client
+                                try{ Utils.transferFromSection(clientSocketChannel,true); }
+                                catch(IOException ioe)
+                                {
+                                    answerCode = opCode.OP_FAIL;
+                                    break;
+                                }
+
+                                answerCode = opCode.OP_OK;
+                                assert (userFiles.get(collectionFilename).isLocked(section-1));
+                                userFiles.get(collectionFilename).unlockSection(section-1);
+
+                                break;
+                            }
+
+                            case SECTION_SEND:
+                            {
+                                String filename = op_in.getFilename();
+                                String owner = op_in.getOwner();
+                                int section = op_in.getSection();
+
+                                try
+                                {
+                                    Utils.transferToSection(clientSocketChannel,getPath(usr,filename,section).replaceFirst("./",""));
+                                    answerCode = opCode.OP_OK;
+                                }
+                                catch(IOException ioe)
+                                {
+                                    answerCode = opCode.OP_FAIL;
+                                    break;
+                                }
+                            }
+
                             default:
-                                answerCode = opCode.OP_FAIL;
                                 break;
                         }
 
@@ -287,7 +344,7 @@ public class MainServer
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
                         opCode code = (opCode) key.attachment();
 
-                        Utils.sendOpCode(clientSocketChannel,code);
+                        Utils.sendBytes(clientSocketChannel,code.toString().getBytes());
                         key.interestOps(SelectionKey.OP_READ);
                     }
                 }

@@ -7,8 +7,8 @@ public class LoginPanel extends JPanel implements ActionListener
     private JTextField username;
     private JPasswordField password;
 
-    protected static String usr;
-    protected static String psw;
+    static String usr;
+    static String psw;
 
     public LoginPanel()
     {
@@ -64,7 +64,7 @@ public class LoginPanel extends JPanel implements ActionListener
                     {
                         case 1: {
                             //nascondo il frame di login
-                            Utils.showNextFrame("TURING",this);
+                            Utils.showNextFrame(frameCode.TURING,this);
                             break;
                         }
 
@@ -84,7 +84,7 @@ public class LoginPanel extends JPanel implements ActionListener
                         case OP_OK:
                         {
                             //nascondo il frame di login
-                            Utils.showNextFrame("TURING",this);
+                            Utils.showNextFrame(frameCode.TURING,this);
                             break;
                         }
 

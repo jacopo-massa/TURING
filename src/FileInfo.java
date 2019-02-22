@@ -12,6 +12,8 @@ public class FileInfo
         this.owner = owner;
         this.nsections = nsections;
         sections = new boolean[nsections];
+        for (boolean b : sections)
+        { b = false; }
     }
 
     public String getOwner() {

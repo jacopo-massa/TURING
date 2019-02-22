@@ -8,7 +8,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
     private JComboBox name;
     private JSpinner nsection;
-    private String operation;
+    private frameCode operation;
     private ArrayList<String> clientFiles;
 
     private String[] options;
@@ -19,10 +19,10 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
     private String usr;
     private String psw;
 
-    public ManagePanel(String operation)
+    public ManagePanel(frameCode operation)
     {
         this.clientFiles = TuringPanel.clientFiles;
-        this.operation = operation.toUpperCase();
+        this.operation = operation;
         this.usr = LoginPanel.usr;
         this.psw = LoginPanel.psw;
 
@@ -34,7 +34,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
 
         String text = "Inserisci i dati del documento da ";
-        if(operation.equals("SHOW"))
+        if(operation == frameCode.SHOW)
             text += "visualizzare";
         else
             text += "modificare";
@@ -66,11 +66,11 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
         centerPanel.add(name);
 
         centerPanel.add(new JLabel("N° sezioni: "));
-        SpinnerNumberModel model = new SpinnerNumberModel(1,1,10,1);
+        SpinnerNumberModel model = new SpinnerNumberModel(1,1,max_sections[0],1);
         nsection = new JSpinner(model);
         centerPanel.add(nsection);
 
-        if(operation.equals("SHOW"))
+        if(operation == frameCode.SHOW)
         {
             JButton showButton = new JButton("Show All");
             southPanel.add(showButton);
@@ -94,22 +94,24 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
     {
         String cmd = e.getActionCommand().toUpperCase();
         String filename, owner;
-        int section = 0;
+        int section;
 
         if(e.getSource() instanceof JButton)
         {
+            frameCode nextFrame = frameCode.TURING;
             switch (cmd)
             {
                 case "OK":
-                    section = (Integer) nsection.getValue();
-
                 case "SHOW ALL":
                 {
+                    section = (Integer) nsection.getValue();
                     boolean goback = true;
                     filename = titles[name.getSelectedIndex()];
                     owner = owners[name.getSelectedIndex()];
 
-                    switch(MainClient.manageDocument(opCode.valueOf(operation), filename, owner, section))
+                    opCode op = (!cmd.equals("SHOW ALL")) ? opCode.valueOf(operation.toString()) : opCode.SHOW_ALL;
+
+                    switch(MainClient.manageDocument(op, filename, owner, section))
                     {
                         case OP_FAIL:
                         {
@@ -118,7 +120,35 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
                             break;
                         }
 
+                        case ERR_FILE_NOT_EXISTS:
+                        {
+                            JOptionPane.showMessageDialog(this,"File/sezione non esistente","WARNING",JOptionPane.WARNING_MESSAGE);
+                            goback = false;
+                            break;
+                        }
+
+                        case SECTION_EDITING:
+                        {
+                            JOptionPane.showMessageDialog(this,"Sezione in modifica da parte di un altro utente","WARNING",JOptionPane.WARNING_MESSAGE);
+                            goback = false;
+                            break;
+                        }
+
+                        case ERR_PERMISSION_DENIED:
+                        {
+                            JOptionPane.showMessageDialog(this,"Non si dispone dei permessi necessari per gestire questo file","WARNING",JOptionPane.WARNING_MESSAGE);
+                            goback = false;
+                            break;
+                        }
+
                         case OP_OK:
+                        {
+                            if(operation == frameCode.EDIT)
+                            {
+                                nextFrame = frameCode.TURING_EDIT;
+                                TuringPanel.editingFilename = filename + "_" + owner + "_" + section;
+                            }
+                        }
                     }
 
                     if(!goback)
@@ -127,7 +157,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
                 case "ANNULLA":
                 {
-                    Utils.showNextFrame("TURING",this);
+                    Utils.showNextFrame(nextFrame,this);
                     break;
                 }
             }
@@ -139,7 +169,6 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
         if(e.getStateChange() == ItemEvent.SELECTED)
         {
             int max = max_sections[name.getSelectedIndex()];
-            System.out.println("Selected " + max + " " + name.getSelectedItem());
             SpinnerNumberModel model = new SpinnerNumberModel(1, 1, max, 1);
             nsection.setModel(model);
         }

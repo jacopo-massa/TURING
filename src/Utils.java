@@ -2,11 +2,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 
-public class Utils
+class Utils
 {
-    public static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
+
+    static String CLIENT_FILES_PATH = "./client_files/";
+    static String SERVER_FILES_PATH = "./turing_files/";
+
+    static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
     {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for(int i=0;i<4;i++)
@@ -19,7 +28,7 @@ public class Utils
         socket.write(wrap);
     }
 
-    public static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
+    static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
     {
         ByteBuffer lengthByteBuffer = ByteBuffer.wrap(new byte[4]);
         ByteBuffer dataByteBuffer = null;
@@ -42,54 +51,138 @@ public class Utils
         return null;
     }
 
-    public static void showNextFrame(String frame, Component c)
+    static void showNextFrame(frameCode frame, Component c)
     {
         //nascondo il frame corrente
         MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(c);
         old_f.setVisible(false);
         //mostro il frame successivo
-        MyFrame f = new MyFrame(frame);
+        new MyFrame(frame);
     }
 
-    public static void sendOpCode(SocketChannel socket, opCode code) throws IOException
+    private static void sendLength(SocketChannel socket, int length) throws IOException
     {
-        ByteBuffer dim = ByteBuffer.allocate(4);
-        ByteBuffer codeBuffer;
-
-        //invio prima la dimensione del code.
-
-        dim.clear();
-        dim.putInt(code.toString().length());
-        dim.flip();
-
-        socket.write(dim);
-
-        //invio il code come stringa
-        byte[] codeBytes = code.toString().getBytes();
-        codeBuffer = ByteBuffer.wrap(codeBytes);
-
-        socket.write(codeBuffer);
-    }
-
-    public static opCode recvOpCode(SocketChannel socket) throws IOException
-    {
-        //leggo la dimensione del code che sto per ricevere
         ByteBuffer dimBuffer = ByteBuffer.wrap(new byte[4]);
-        ByteBuffer codeBuffer;
+
+        dimBuffer.clear();
+        dimBuffer.putInt(length);
+        dimBuffer.flip();
+
+        socket.write(dimBuffer);
+    }
+
+    private static int recvLength(SocketChannel socket) throws IOException
+    {
+        ByteBuffer dimBuffer = ByteBuffer.wrap(new byte[4]);
 
         socket.read(dimBuffer);
+        System.out.println(dimBuffer.toString());
         dimBuffer.flip();
-        int dim = dimBuffer.getInt();
+        int dim = dimBuffer.getInt(0);
         dimBuffer.clear();
 
-        codeBuffer = ByteBuffer.allocate(dim);
-        socket.read(codeBuffer);
-        codeBuffer.flip();
+        return dim;
+    }
 
-        byte[] codeBytes = new byte[codeBuffer.remaining()];
-        codeBuffer.get(codeBytes);
+    static void sendBytes(SocketChannel socket, byte[] bytes) throws IOException
+    {
+        ByteBuffer bytesBuffer;
 
-        return opCode.valueOf(new String(codeBytes));
+        sendLength(socket,bytes.length);
 
+        bytesBuffer = ByteBuffer.wrap(bytes);
+
+        socket.write(bytesBuffer);
+
+        bytesBuffer.clear();
+    }
+
+    static byte[] recvBytes(SocketChannel socket) throws IOException
+    {
+        //leggo la dimensione del code che sto per ricevere
+        ByteBuffer bytesBuffer;
+
+        int dim = recvLength(socket);
+
+        bytesBuffer = ByteBuffer.allocate(dim);
+        socket.read(bytesBuffer);
+        bytesBuffer.flip();
+
+        byte[] answerBytes = new byte[bytesBuffer.remaining()];
+        bytesBuffer.get(answerBytes);
+
+        return answerBytes;
+
+    }
+
+    static void transferToSection(SocketChannel socket, String filepath) throws IOException
+    {
+
+        File f = new File(filepath);
+        FileInputStream fis;
+        FileChannel fc;
+
+        try
+        {
+            fis = new FileInputStream(f);
+            fc = fis.getChannel();
+        }
+        catch (FileNotFoundException a)
+        {
+            System.out.println(filepath + " NON TROVATO");
+            throw new IOException();
+        }
+
+        //elimino Utils.*_FILES_PATH dal filepath
+        String pathWithoutSource = filepath.split("/",2)[1];
+
+        byte[] pathBytes = pathWithoutSource.getBytes();
+
+        //mando il path
+        sendBytes(socket,pathBytes);
+
+
+        //mando lunghezza del file
+        sendLength(socket, (int) f.length());
+
+
+        //mando il file
+        fc.transferTo(0, f.length(), socket);
+        fc.close();
+        fis.close();
+    }
+
+    static void transferFromSection(SocketChannel socket, boolean isServer) throws IOException
+    {
+        //leggo il path
+        byte[] pathBytes = recvBytes(socket);
+        String filepath = new String(pathBytes);
+
+        filepath = ((isServer) ? Utils.SERVER_FILES_PATH : Utils.CLIENT_FILES_PATH) + filepath;
+
+        Files.createDirectories(Paths.get(filepath.substring(0,filepath.lastIndexOf("/"))));
+
+        File f = new File(filepath);
+
+        f.createNewFile(); //se il file già esiste lo sovrascrivo
+
+        FileOutputStream fos = new FileOutputStream(f);
+        FileChannel fc = fos.getChannel();
+
+        //leggo lunghezza del file
+        int fileLength = recvLength(socket);
+
+        //leggo il file
+        fc.transferFrom(socket,0, fileLength);
+        fc.close();
+        fos.close();
+    }
+
+    static void deleteDirectory(String path) throws IOException
+    {
+        Files.walk(Paths.get(path))
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
     }
 }

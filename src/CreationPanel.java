@@ -7,9 +7,11 @@ public class CreationPanel extends JPanel implements ActionListener
 
     private JTextField name;
     private JSpinner nsection;
+    private String editingFilename;
 
-    public CreationPanel()
+    CreationPanel()
     {
+        this.editingFilename = TuringPanel.editingFilename;
         this.setLayout(new BorderLayout());
         JPanel northPanel = new JPanel();
         JPanel centerPanel = new JPanel();
@@ -45,7 +47,7 @@ public class CreationPanel extends JPanel implements ActionListener
     {
         String cmd = e.getActionCommand().toUpperCase();
         String filename;
-        int section = 0;
+        int section;
 
         if(e.getSource() instanceof JButton)
         {
@@ -89,7 +91,10 @@ public class CreationPanel extends JPanel implements ActionListener
 
                 case "ANNULLA":
                 {
-                    Utils.showNextFrame("TURING",this);
+                    if(editingFilename == null)
+                        Utils.showNextFrame(frameCode.TURING,this);
+                    else
+                        Utils.showNextFrame(frameCode.TURING_EDIT,this);
                     break;
                 }
             }

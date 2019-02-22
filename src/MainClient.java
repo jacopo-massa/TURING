@@ -1,30 +1,32 @@
-import java.io.*;
-import java.net.*;
-import java.rmi.*;
-import java.rmi.registry.*;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.StringTokenizer;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 
 public class MainClient
 {
-    public static int REGISTRATION_PORT = 5000;
-    public static int PORT = 5001;
-
-    static InetSocketAddress address;
-    static SocketChannel clientSocketChannel;
+        static SocketChannel clientSocketChannel;
 
     static String username;
     static String password;
 
     public static void main(String[] args)
     {
-        new MyFrame("LOGIN");
+        new MyFrame(frameCode.LOGIN);
+
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(() -> {
+                    try { Utils.deleteDirectory(Utils.CLIENT_FILES_PATH + username); }
+                    catch(IOException ioe) {System.err.println("Can't delete " + Utils.CLIENT_FILES_PATH + username); }
+                }));
     }
 
-    public static boolean sendReq(Operation op)
+    static boolean sendReq(Operation op)
     {
         try
         {
@@ -40,36 +42,38 @@ public class MainClient
         return true;
     }
 
-    public static opCode getAnswer()
+    static opCode getAnswer()
     {
         try
         {
-            opCode answer = Utils.recvOpCode(clientSocketChannel);
-            if(answer == null)
+            byte[] answerBytes = Utils.recvBytes(clientSocketChannel);
+
+            if(answerBytes.length == 0)
             {
                 System.out.println("CHIUSO");
                 clientSocketChannel.close();
                 return opCode.OP_FAIL;
             }
             else
-                return answer;
+                return opCode.valueOf(new String(answerBytes));
 
         }
         catch (IOException | NullPointerException e)
         {
             System.err.println("Error in reading object");
             e.printStackTrace();
-            return null;
+            return opCode.OP_FAIL;
         }
     }
 
-    public static int register()
+    static int register()
     {
         IntRegistration registration;
         Remote remote;
 
         try
         {
+            int REGISTRATION_PORT = 5000;
             Registry registry = LocateRegistry.getRegistry(REGISTRATION_PORT);
             remote = registry.lookup("TURING-SERVER");
             registration = (IntRegistration) remote;
@@ -99,9 +103,10 @@ public class MainClient
         }
     }
 
-    public static opCode loginUser()
+    static opCode loginUser()
     {
-        address = new InetSocketAddress("127.0.0.1",PORT);
+        int PORT = 5001;
+        InetSocketAddress address = new InetSocketAddress("127.0.0.1", PORT);
 
         try
         {
@@ -129,7 +134,7 @@ public class MainClient
         return getAnswer();
     }
 
-    public static opCode logoutUser()
+    static opCode logoutUser()
     {
         Operation request = new Operation(username);
         request.setPassword(password);
@@ -149,7 +154,7 @@ public class MainClient
         return answer;
     }
 
-    public static opCode createDocument(String name, int nsection)
+    static opCode createDocument(String name, int nsection)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
@@ -163,22 +168,62 @@ public class MainClient
         return getAnswer();
     }
 
-    public static opCode manageDocument(opCode code, String name, String owner, int nsection)
+    static opCode manageDocument(opCode code, String name, String owner, int nsection)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
-        if(nsection != 0)
-        {
-            request.setCode(code);
-            request.setSection(nsection);
-        }
-        else
-            request.setCode(opCode.SHOW_ALL);
-
+        request.setCode(code);
         request.setFilename(name);
         request.setOwner(owner);
+        request.setSection(nsection);
+
         sendReq(request);
 
-        return getAnswer();
+        opCode answerCode = getAnswer();
+
+
+        /* TODO - aggiustare condizioni per SHOW e EDIT */
+        if(answerCode == opCode.OP_OK)
+        {
+            boolean showAll = (code == opCode.SHOW_ALL);
+
+            for (int i = (showAll) ? 1 : nsection; i <= nsection; i++)
+            {
+                try
+                {
+
+                    Utils.transferFromSection(clientSocketChannel,false);
+                    answerCode = getAnswer();
+                }
+                catch(IOException ioe)
+                { answerCode = opCode.OP_FAIL; }
+            }
+        }
+        return answerCode;
+    }
+
+    static opCode endEditDocument(String name, String owner, int section)
+    {
+        Operation request = new Operation(username);
+        request.setPassword(password);
+        request.setCode(opCode.END_EDIT);
+        request.setFilename(name);
+        request.setOwner(owner);
+        request.setSection(section);
+
+        sendReq(request);
+
+        opCode answerCode;
+
+        try
+        {
+            String filepath = Utils.CLIENT_FILES_PATH + username + "/" + name + "/" + name + section + ".txt";
+            Utils.transferToSection(clientSocketChannel,filepath.replaceFirst("./",""));
+            answerCode = getAnswer();
+        }
+        catch(IOException ioe)
+        { answerCode = opCode.OP_FAIL; }
+
+        return answerCode;
     }
 }
