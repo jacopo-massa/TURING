@@ -20,6 +20,8 @@ public class InvitationPanel extends JPanel implements ActionListener
 
     public InvitationPanel()
     {
+        this.usr = LoginPanel.usr;
+        this.psw = LoginPanel.psw;
         this.clientFiles = TuringPanel.clientFiles;
 
         int size = clientFiles.size();
@@ -29,56 +31,40 @@ public class InvitationPanel extends JPanel implements ActionListener
         for (int i = 0; i < size; i++)
         {
             String[] o = clientFiles.get(i).split("_",3);
+
             titles[i] = o[0];
             owners[i] = o[1];
-
-            //TODO - invitare solo per file miei
-            /*if(o[1].equals(usr))
-            {
-                titles[i] = o[0];
-                owners[i] = o[1];
-            }*/
         }
 
-        /*System.out.println(titles.length);
-        if(titles.length == 0)
-            JOptionPane.showMessageDialog(this,"Nessun file a cui poter collaborare!","WARNING",JOptionPane.WARNING_MESSAGE);
-        else
-        {*/
-            this.usr = LoginPanel.usr;
-            this.psw = LoginPanel.psw;
+        this.setLayout(new BorderLayout());
+        JPanel northPanel = new JPanel();
+        JPanel centerPanel = new JPanel();
+        JPanel southPanel = new JPanel();
 
+        northPanel.add(new JLabel("Scegli il documento e l'utente da invitare"));
 
-            this.setLayout(new BorderLayout());
-            JPanel northPanel = new JPanel();
-            JPanel centerPanel = new JPanel();
-            JPanel southPanel = new JPanel();
+        centerPanel.setLayout(new GridLayout(2,2));
 
-            northPanel.add(new JLabel("Scegli il documento e l'utente da invitare"));
+        filename = new JComboBox(titles);
 
-            centerPanel.setLayout(new GridLayout(2,2));
+        centerPanel.add(new JLabel("Documento: "));
+        centerPanel.add(filename);
 
-            filename = new JComboBox(titles);
+        centerPanel.add(new JLabel("Username collaboratore: "));
+        collaborator = new JTextField();
+        centerPanel.add(collaborator);
 
-            centerPanel.add(new JLabel("Documento: "));
-            centerPanel.add(filename);
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Annulla");
 
-            centerPanel.add(new JLabel("Username collaboratore: "));
-            collaborator = new JTextField();
-            centerPanel.add(collaborator);
+        southPanel.add(okButton);
+        southPanel.add(cancelButton);
+        okButton.addActionListener(this);
+        cancelButton.addActionListener(this);
 
-            JButton okButton = new JButton("OK");
-            JButton cancelButton = new JButton("Annulla");
-
-            southPanel.add(okButton);
-            southPanel.add(cancelButton);
-            okButton.addActionListener(this);
-            cancelButton.addActionListener(this);
-
-            this.add(northPanel,BorderLayout.NORTH);
-            this.add(centerPanel,BorderLayout.CENTER);
-            this.add(southPanel,BorderLayout.SOUTH);
-        //}
+        this.add(northPanel,BorderLayout.NORTH);
+        this.add(centerPanel,BorderLayout.CENTER);
+        this.add(southPanel,BorderLayout.SOUTH);
     }
     public void actionPerformed(ActionEvent e)
     {

@@ -167,12 +167,6 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
                                 JOptionPane.showMessageDialog(this,msg,"INFORMATION",JOptionPane.INFORMATION_MESSAGE);
                             }
 
-                            /*if(operation == frameCode.EDIT || (TuringPanel.editingFilename != null && !TuringPanel.editingFilename.equals("")))
-                            {
-                                nextFrame = frameCode.TURING_EDIT;
-                                TuringPanel.editingFilename = filename + "_" + owner + "_" + section;
-                            }*/
-
                             if((TuringPanel.editingFilename != null && !TuringPanel.editingFilename.equals("")))
                                 nextFrame = frameCode.TURING_EDIT;
 

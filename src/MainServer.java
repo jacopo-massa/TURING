@@ -179,6 +179,10 @@ public class MainServer
 
                             case FILE_LIST:
                             {
+                                String owner = op_in.getOwner();
+
+                                boolean onlyMyFiles = usr.equals(owner);
+
                                 /* mando all'utente la lista di file che può gestire,
                                    impostando l'esito di tale invio, che manderò successivamente
                                  */
@@ -191,7 +195,8 @@ public class MainServer
                                            nomefile_owner_numsezioni
                                          */
 
-                                        nameToSend.add(s + "_" + userFiles.get(s).getNsections());
+                                        if(!onlyMyFiles || userFiles.get(s).getOwner().equals(owner))
+                                            nameToSend.add(s + "_" + userFiles.get(s).getNsections());
                                     }
                                     Utils.sendObject(clientSocketChannel, nameToSend);
                                     answerCode = opCode.OP_OK;
@@ -417,7 +422,6 @@ public class MainServer
                                 }
                                 else
                                 {
-                                    System.out.println("COLLECTION FILENAME:" + collectionFilename);
                                     userInfo.addFile(collectionFilename);
 
                                     //utente non online, aggiungo l'invito alla sua lista di inviti pendenti

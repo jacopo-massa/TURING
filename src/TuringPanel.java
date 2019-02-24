@@ -125,6 +125,9 @@ public class TuringPanel extends JPanel implements ActionListener
                     Operation request = new Operation(usr);
                     request.setPassword(psw);
                     request.setCode(opCode.FILE_LIST);
+
+                    if(cmd.equals("INVITE"))
+                        request.setOwner(usr);
                     MainClient.sendReq(request);
 
                     try
