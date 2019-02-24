@@ -1,7 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.IOException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 
 public class ManagePanel extends JPanel implements ActionListener, ItemListener {
@@ -94,7 +96,6 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
     {
         String cmd = e.getActionCommand().toUpperCase();
         String filename, owner;
-        int section;
 
         if(e.getSource() instanceof JButton)
         {
@@ -104,11 +105,13 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
                 case "OK":
                 case "SHOW ALL":
                 {
-                    section = (Integer) nsection.getValue();
                     boolean goback = true;
-                    filename = titles[name.getSelectedIndex()];
-                    owner = owners[name.getSelectedIndex()];
+                    int selectedIndex = name.getSelectedIndex();
+                    int section;
+                    filename = titles[selectedIndex];
+                    owner = owners[selectedIndex];
 
+                    section = (!cmd.equals("SHOW ALL")) ? (Integer) nsection.getValue() : max_sections[selectedIndex];
                     opCode op = (!cmd.equals("SHOW ALL")) ? opCode.valueOf(operation.toString()) : opCode.SHOW_ALL;
 
                     switch(MainClient.manageDocument(op, filename, owner, section))
@@ -143,11 +146,43 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
                         case OP_OK:
                         {
+                            if (cmd.equals("SHOW ALL"))
+                            {
+                                int counter=0;
+                                ArrayList<Boolean> editedSections = MainClient.editedSections;
+                                String msg = "";
+                                for (int i = 0; i < editedSections.size(); i++)
+                                {
+                                    if(editedSections.get(i))
+                                    {
+                                        msg += " - Sezione " + (i + 1) + "\n";
+                                        counter++;
+                                    }
+                                }
+                                if(counter == 0)
+                                    msg = "NESSUNA SEZIONE in fase di editing: \n";
+                                else
+                                    msg = "Le seguenti sezioni sono in fase di editing: \n" + msg;
+
+                                JOptionPane.showMessageDialog(this,msg,"INFORMATION",JOptionPane.INFORMATION_MESSAGE);
+                            }
+
+                            /*if(operation == frameCode.EDIT || (TuringPanel.editingFilename != null && !TuringPanel.editingFilename.equals("")))
+                            {
+                                nextFrame = frameCode.TURING_EDIT;
+                                TuringPanel.editingFilename = filename + "_" + owner + "_" + section;
+                            }*/
+
+                            if((TuringPanel.editingFilename != null && !TuringPanel.editingFilename.equals("")))
+                                nextFrame = frameCode.TURING_EDIT;
+
                             if(operation == frameCode.EDIT)
                             {
                                 nextFrame = frameCode.TURING_EDIT;
                                 TuringPanel.editingFilename = filename + "_" + owner + "_" + section;
                             }
+
+
                         }
                     }
 

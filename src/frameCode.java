@@ -5,5 +5,6 @@ public enum frameCode
     TURING_EDIT,
     CREATE,
     SHOW,
+    INVITE,
     EDIT;
 }

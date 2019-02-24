@@ -4,7 +4,7 @@ import javax.swing.*;
 
 class MyFrame extends JFrame
 {
-    MyFrame(frameCode frame)
+    MyFrame(Point location, frameCode frame)
     {
         super("TURING");
         Container c = this.getContentPane();
@@ -26,6 +26,10 @@ class MyFrame extends JFrame
                 p = new ManagePanel(frame);
                 break;
 
+            case INVITE:
+                p = new InvitationPanel();
+                break;
+
             case LOGIN:
             default:
                 p = new LoginPanel();
@@ -39,8 +43,15 @@ class MyFrame extends JFrame
         this.pack();
 
         //imposto posizione della finestra
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setLocation((screenSize.width - this.getWidth())/2,(screenSize.height - this.getHeight())/2);
+
+        if(location == null)
+        {
+            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+            location = new Point(
+                    (int) (dimension.getWidth() - this.getWidth()) / 2,
+                    (int) (dimension.getHeight() - this.getHeight()) / 2);
+        }
+        this.setLocation(location);
 
         //all'uscita dalla finestra, chiude il processo con System Exit.
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);

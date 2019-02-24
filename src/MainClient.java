@@ -1,29 +1,43 @@
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
 
 
 public class MainClient
 {
-        static SocketChannel clientSocketChannel;
+    static SocketChannel clientSocketChannel;
+    static SocketChannel inviteSocketChannel;
+    static ArrayList<Boolean> editedSections;
+    static Thread inviteThread;
 
     static String username;
     static String password;
+    static ArrayList<Invitation> pendingInvitations;
 
     public static void main(String[] args)
     {
-        new MyFrame(frameCode.LOGIN);
+        //creo il frame di login
+        new MyFrame(null,frameCode.LOGIN);
 
+        //imposto una funzione di cleanup che elimina i file dell'utente alla terminazione del client
         Runtime.getRuntime().addShutdownHook(
-                new Thread(() -> {
-                    try { Utils.deleteDirectory(Utils.CLIENT_FILES_PATH + username); }
+                new Thread(() ->
+                {
+                    try
+                    {
+                        Utils.deleteDirectory(Utils.CLIENT_FILES_PATH + username);
+
+                    }
                     catch(IOException ioe) {System.err.println("Can't delete " + Utils.CLIENT_FILES_PATH + username); }
+                    logoutUser();
                 }));
+
+        //creo un thread che resta in ascolto per gli inviti in tempo reale
     }
 
     static boolean sendReq(Operation op)
@@ -60,10 +74,33 @@ public class MainClient
         }
         catch (IOException | NullPointerException e)
         {
-            System.err.println("Error in reading object");
+            System.err.println("Error in reading operation code result");
             e.printStackTrace();
             return opCode.OP_FAIL;
         }
+    }
+
+    static SocketChannel openConnection(int port)
+    {
+        SocketChannel socketChannel;
+        InetSocketAddress address = new InetSocketAddress(Utils.ADDRESS, port);
+        try
+        {
+            socketChannel = SocketChannel.open();
+            socketChannel.connect(address);
+
+            //aspetto che termini la connessione
+            while (!socketChannel.finishConnect())
+            {continue;}
+        }
+        catch(IOException ioe)
+        {
+            System.err.println("Error in opening socket");
+            ioe.printStackTrace();
+            return null;
+        }
+
+        return socketChannel;
     }
 
     static int register()
@@ -105,33 +142,61 @@ public class MainClient
 
     static opCode loginUser()
     {
-        int PORT = 5001;
-        InetSocketAddress address = new InetSocketAddress("127.0.0.1", PORT);
+        opCode answerCode;
 
-        try
+        clientSocketChannel = openConnection(Utils.CLIENT_PORT);
+
+        if(clientSocketChannel == null)
+            answerCode = opCode.OP_FAIL;
+        else
         {
-            clientSocketChannel = SocketChannel.open();
-            clientSocketChannel.connect(address);
+            Operation request = new Operation(username);
+            request.setPassword(password);
+            request.setCode(opCode.LOGIN);
+            sendReq(request);
 
-            //aspetto che termini la connessione
-            while (!clientSocketChannel.finishConnect())
+            inviteSocketChannel = openConnection(Utils.INVITE_PORT);
+            if(inviteSocketChannel == null)
             {
-                System.out.println("Non terminata la connessione");
+                try {clientSocketChannel.close();}
+                catch (IOException e) {e.printStackTrace();}
+                answerCode = opCode.OP_FAIL;
+            }
+            else
+            {
+                answerCode = getAnswer();
+
+                if(answerCode == opCode.OP_OK)
+                {
+                    //creo il thread per la ricezione degli inviti
+                    inviteThread = new Thread(new InviteTask(inviteSocketChannel));
+                    inviteThread.start();
+
+                    //ottengo la lista degli inviti ricevuti quando sia era offline
+
+                    request.setCode(opCode.PENDING_INVITATIONS);
+                    sendReq(request);
+
+                    try
+                    {
+                        pendingInvitations = (ArrayList<Invitation>) Utils.recvObject(clientSocketChannel);
+
+                        if(pendingInvitations == null)
+                            throw new NullPointerException();
+
+                        //esito dell'operazione di login
+                        answerCode = getAnswer();
+                    }
+                    catch(ClassNotFoundException | IOException | NullPointerException e)
+                    {
+                        System.err.println("Error in downloading pending invites");
+                        answerCode = opCode.OP_FAIL;
+                    }
+                }
             }
         }
-        catch(IOException ioe)
-        {
-            System.err.println("Error in connecting to server");
-            ioe.printStackTrace();
-            return opCode.OP_FAIL;
-        }
 
-        Operation request = new Operation(username);
-        request.setPassword(password);
-        request.setCode(opCode.LOGIN);
-        sendReq(request);
-
-        return getAnswer();
+        return answerCode;
     }
 
     static opCode logoutUser()
@@ -140,18 +205,27 @@ public class MainClient
         request.setPassword(password);
         request.setCode(opCode.LOGOUT);
         sendReq(request);
-        opCode answer = getAnswer();
-        if(answer == opCode.OP_FAIL)
+
+        //chiudo socket del client
+        try { clientSocketChannel.close(); }
+        catch(IOException ioe)
         {
-            try { clientSocketChannel.close(); }
-            catch(IOException ioe)
-            {
-                System.err.println("Error in closing clientSocketChannel");
-                ioe.printStackTrace();
-            }
+            System.err.println("Error in closing clientSocketChannel");
+            ioe.printStackTrace();
         }
 
-        return answer;
+        //interrompo il thread degli inviti
+        inviteThread.interrupt();
+
+        //chiudo socket degli inviti
+        try { inviteSocketChannel.close(); }
+        catch(IOException ioe)
+        {
+            System.err.println("Error in closing inviteSocketChannel");
+            ioe.printStackTrace();
+        }
+
+        return opCode.OP_OK;
     }
 
     static opCode createDocument(String name, int nsection)
@@ -179,18 +253,35 @@ public class MainClient
 
         sendReq(request);
 
-        opCode answerCode = getAnswer();
 
+        opCode answerCode;
+        boolean showAll = (code == opCode.SHOW_ALL);
 
-        /* TODO - aggiustare condizioni per SHOW e EDIT */
-        if(answerCode == opCode.OP_OK)
+        if(showAll)
         {
-            boolean showAll = (code == opCode.SHOW_ALL);
+            try
+            {
+                editedSections = (ArrayList<Boolean>) Utils.recvObject(clientSocketChannel);
+                answerCode = getAnswer();
+            }
+            catch (ClassNotFoundException | IOException e)
+            {
+                System.err.println("Can't download list of edited sections");
+                answerCode = opCode.OP_FAIL;
+            }
+        }
+        else
+            answerCode = getAnswer();
 
+        if(answerCode == opCode.OP_OK || (code != opCode.EDIT && answerCode == opCode.SECTION_EDITING))
+        {
             for (int i = (showAll) ? 1 : nsection; i <= nsection; i++)
             {
                 try
                 {
+                    request.setCode(opCode.SECTION_RECEIVE);
+                    request.setSection(i);
+                    sendReq(request);
 
                     Utils.transferFromSection(clientSocketChannel,false);
                     answerCode = getAnswer();
@@ -226,4 +317,18 @@ public class MainClient
 
         return answerCode;
     }
+
+    static opCode invite(String filename, String collaborator)
+    {
+        Operation request = new Operation(collaborator);
+        request.setPassword(password);
+        request.setCode(opCode.INVITE);
+        request.setFilename(filename);
+        request.setOwner(username);
+
+        sendReq(request);
+        opCode answerCode = getAnswer();
+        return answerCode;
+    }
+
 }

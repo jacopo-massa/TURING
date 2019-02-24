@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -7,13 +8,37 @@ import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
 
 class Utils
 {
 
     static String CLIENT_FILES_PATH = "./client_files/";
     static String SERVER_FILES_PATH = "./turing_files/";
+
+    static String ADDRESS = "127.0.0.1";
+    static int REGISTRATION_PORT = 5000;
+    static int CLIENT_PORT = 5001;
+    static int INVITE_PORT = 5002;
+
+    static void writeN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
+    {
+        int counter = 0;
+
+        do
+        { counter += socket.write(buffer); }
+        while(counter < n);
+    }
+
+    static void readN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
+    {
+        int counter = 0;
+        do
+        { counter += socket.read(buffer); }
+        while(counter < n);
+    }
 
     static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
     {
@@ -25,21 +50,29 @@ class Utils
         oos.close();
         ByteBuffer wrap = ByteBuffer.wrap(baos.toByteArray());
         wrap.putInt(0, baos.size()-4);
-        socket.write(wrap);
+        //socket.write(wrap);
+        writeN(socket,wrap,baos.size());
     }
 
     static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
     {
         ByteBuffer lengthByteBuffer = ByteBuffer.wrap(new byte[4]);
         ByteBuffer dataByteBuffer = null;
+        int length = 0;
 
-        socket.read(lengthByteBuffer);
+        readN(socket,lengthByteBuffer,4);
         if (lengthByteBuffer.remaining() == 0)
         {
-            dataByteBuffer = ByteBuffer.allocate(lengthByteBuffer.getInt(0));
+            length = lengthByteBuffer.getInt(0);
+            dataByteBuffer = ByteBuffer.allocate(length);
             lengthByteBuffer.clear();
         }
-        socket.read(dataByteBuffer);
+
+        readN(socket,dataByteBuffer,length);
+
+        if(dataByteBuffer == null)
+            return null;
+
         if (dataByteBuffer.remaining() == 0)
         {
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(dataByteBuffer.array()));
@@ -51,15 +84,6 @@ class Utils
         return null;
     }
 
-    static void showNextFrame(frameCode frame, Component c)
-    {
-        //nascondo il frame corrente
-        MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(c);
-        old_f.setVisible(false);
-        //mostro il frame successivo
-        new MyFrame(frame);
-    }
-
     private static void sendLength(SocketChannel socket, int length) throws IOException
     {
         ByteBuffer dimBuffer = ByteBuffer.wrap(new byte[4]);
@@ -68,31 +92,30 @@ class Utils
         dimBuffer.putInt(length);
         dimBuffer.flip();
 
-        socket.write(dimBuffer);
+        writeN(socket,dimBuffer,4);
     }
 
     private static int recvLength(SocketChannel socket) throws IOException
     {
-        ByteBuffer dimBuffer = ByteBuffer.wrap(new byte[4]);
+        ByteBuffer lengthBuffer = ByteBuffer.wrap(new byte[4]);
 
-        socket.read(dimBuffer);
-        System.out.println(dimBuffer.toString());
-        dimBuffer.flip();
-        int dim = dimBuffer.getInt(0);
-        dimBuffer.clear();
+        readN(socket,lengthBuffer,4);
 
-        return dim;
+        lengthBuffer.flip();
+        int length = lengthBuffer.getInt(0);
+        lengthBuffer.clear();
+
+        return length;
     }
 
     static void sendBytes(SocketChannel socket, byte[] bytes) throws IOException
     {
-        ByteBuffer bytesBuffer;
-
         sendLength(socket,bytes.length);
 
-        bytesBuffer = ByteBuffer.wrap(bytes);
+        ByteBuffer bytesBuffer;
 
-        socket.write(bytesBuffer);
+        bytesBuffer = ByteBuffer.wrap(bytes);
+        writeN(socket,bytesBuffer,bytes.length);
 
         bytesBuffer.clear();
     }
@@ -101,14 +124,16 @@ class Utils
     {
         //leggo la dimensione del code che sto per ricevere
         ByteBuffer bytesBuffer;
+        byte[] answerBytes;
 
         int dim = recvLength(socket);
 
         bytesBuffer = ByteBuffer.allocate(dim);
-        socket.read(bytesBuffer);
+        readN(socket,bytesBuffer,dim);
+
         bytesBuffer.flip();
 
-        byte[] answerBytes = new byte[bytesBuffer.remaining()];
+        answerBytes = new byte[bytesBuffer.remaining()];
         bytesBuffer.get(answerBytes);
 
         return answerBytes;
@@ -118,14 +143,17 @@ class Utils
     static void transferToSection(SocketChannel socket, String filepath) throws IOException
     {
 
-        File f = new File(filepath);
+        File f;
         FileInputStream fis;
         FileChannel fc;
+        int fileLength;
 
         try
         {
+            f = new File(filepath);
             fis = new FileInputStream(f);
             fc = fis.getChannel();
+            fileLength = (int) f.length();
         }
         catch (FileNotFoundException a)
         {
@@ -143,11 +171,16 @@ class Utils
 
 
         //mando lunghezza del file
-        sendLength(socket, (int) f.length());
+        sendLength(socket, fileLength);
 
+        if(fileLength != 0)
+        {
+            //mando il file
+            int n = 0;
+            do{ n += fc.transferTo(0, fileLength, socket); }
+            while(n < fileLength);
+        }
 
-        //mando il file
-        fc.transferTo(0, f.length(), socket);
         fc.close();
         fis.close();
     }
@@ -172,8 +205,14 @@ class Utils
         //leggo lunghezza del file
         int fileLength = recvLength(socket);
 
-        //leggo il file
-        fc.transferFrom(socket,0, fileLength);
+        if(fileLength != 0)
+        {
+            //leggo il file
+            int n = 0;
+            do{ n += fc.transferFrom(socket,0, fileLength); }
+            while(n < fileLength);
+        }
+
         fc.close();
         fos.close();
     }
@@ -184,5 +223,55 @@ class Utils
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
+    }
+
+    static void showNextFrame(frameCode frame, Component c)
+    {
+        //nascondo il frame corrente
+        MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(c);
+        Point oldLocation = old_f.getLocationOnScreen();
+        old_f.setVisible(false);
+
+        //mostro il frame successivo
+        new MyFrame(oldLocation, frame);
+    }
+
+    static synchronized void appendToPane(JTextPane tp, String msg, Color c, boolean bold)
+    {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+
+        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
+        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
+
+        if(bold)
+            aset = sc.addAttribute(aset, StyleConstants.Bold, Boolean.TRUE);
+
+        int len = tp.getDocument().getLength();
+        tp.setCaretPosition(len);
+        tp.setCharacterAttributes(aset, false);
+
+        Document doc = tp.getStyledDocument();
+        try{ doc.insertString(doc.getLength(),msg,aset);}
+        catch (BadLocationException e){e.printStackTrace();}
+    }
+
+    static void printInvite(String owner, String filename, Date date)
+    {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+        String textToAppend = "[" + formatter.format(date) + "] - ";
+
+        Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLACK,false);
+
+        textToAppend = "invite from ";
+        Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLUE,false);
+
+        Utils.appendToPane(TuringPanel.receiveArea, owner, Color.RED,true);
+
+        textToAppend = " for document ";
+        Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLUE,false);
+
+        Utils.appendToPane(TuringPanel.receiveArea, filename + "\n", Color.RED,true);
     }
 }

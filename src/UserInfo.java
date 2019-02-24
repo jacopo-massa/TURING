@@ -1,10 +1,14 @@
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class UserInfo
 {
     private String password;
     private int online;
     private ArrayList<String> files;
+    private ArrayList<Invitation> pendingInvitations;
+    private SocketChannel inviteSocketChannel;
     private String editingFilename;
     private int editingSection;
 
@@ -12,6 +16,7 @@ public class UserInfo
     {
         this.password = password;
         this.files = new ArrayList<>();
+        this.pendingInvitations = new ArrayList<>();
         this.editingFilename = "";
         this.editingSection = 0;
     }
@@ -25,16 +30,16 @@ public class UserInfo
         return files.contains(filename);
     }
 
-    public boolean addFile(String filename)
+    public void addFile(String filename)
     {
-        return files.add(filename);
+        if(!files.contains(filename))
+            files.add(filename);
     }
 
     public boolean removeFile(String filename)
     {
         return files.remove(filename);
     }
-
 
     public String getPassword() {
         return password;
@@ -67,5 +72,27 @@ public class UserInfo
 
     public void setEditingSection(int editingSection) {
         this.editingSection = editingSection;
+    }
+
+    public ArrayList<Invitation> getPendingInvitations() {
+        return pendingInvitations;
+    }
+
+    public void addPendingInvite(Invitation invitation)
+    {
+        pendingInvitations.add(invitation);
+    }
+
+    public void clearPendingInvites()
+    {
+        pendingInvitations.clear();
+    }
+
+    public SocketChannel getInviteSocketChannel() {
+        return inviteSocketChannel;
+    }
+
+    public void setInviteSocketChannel(SocketChannel inviteSocketChannel) {
+        this.inviteSocketChannel = inviteSocketChannel;
     }
 }

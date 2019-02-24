@@ -32,11 +32,8 @@ public class RegisteredUsers extends RemoteServer implements IntRegistration
         return true;
     }
 
-    UserInfo getUser(String username, String password)
+    UserInfo getUser(String username)
     {
-        if(!checkData(username,password))
-            return null;
-
         return users.get(username);
     }
 

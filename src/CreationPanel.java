@@ -91,7 +91,7 @@ public class CreationPanel extends JPanel implements ActionListener
 
                 case "ANNULLA":
                 {
-                    if(editingFilename == null)
+                    if(editingFilename == null || editingFilename.equals(""))
                         Utils.showNextFrame(frameCode.TURING,this);
                     else
                         Utils.showNextFrame(frameCode.TURING_EDIT,this);

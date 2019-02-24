@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -14,6 +13,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +29,7 @@ public class MainServer
     {
         //collezione degli utenti registrati a TURING
         RegisteredUsers registeredUsers = new RegisteredUsers();
+
         //collezione dei file caricati dagli utenti su TURING
         ConcurrentHashMap<String, FileInfo> userFiles = new ConcurrentHashMap<>();
 
@@ -38,9 +39,8 @@ public class MainServer
         {
             IntRegistration stub = (IntRegistration) UnicastRemoteObject.exportObject(registeredUsers,0);
 
-            int REGISTRATION_PORT = 5000;
-            LocateRegistry.createRegistry(REGISTRATION_PORT);
-            Registry r=LocateRegistry.getRegistry(REGISTRATION_PORT);
+            LocateRegistry.createRegistry(Utils.REGISTRATION_PORT);
+            Registry r=LocateRegistry.getRegistry(Utils.REGISTRATION_PORT);
 
             r.rebind("TURING-SERVER",stub);
         }
@@ -59,25 +59,40 @@ public class MainServer
                     catch(IOException ioe) {System.err.println("Can't delete " + Utils.SERVER_FILES_PATH); }
                 }));
 
+        /* Creazione del socket TCP per la notifica degli inviti */
+
+        ServerSocketChannel inviteSSC;
+        try
+        {
+            inviteSSC = ServerSocketChannel.open();
+            ServerSocket inviteServerSocket = inviteSSC.socket();
+            inviteServerSocket.bind(new InetSocketAddress(Utils.ADDRESS, Utils.INVITE_PORT));
+        }
+        catch(IOException ioe)
+        {
+            System.err.println("Error opening server socket for invites management " + ioe.toString() + ioe.getMessage());
+            ioe.printStackTrace();
+            return;
+        }
+
         /* Creazione del socket TCP per tutte le altre richieste dei client */
 
-        ServerSocketChannel serverSocketChannel;
+        ServerSocketChannel clientSSC;
         Selector selector;
         try
         {
-            serverSocketChannel = ServerSocketChannel.open();
-            ServerSocket serverSocket = serverSocketChannel.socket();
-            int PORT = 5001;
-            serverSocket.bind(new InetSocketAddress("127.0.0.1", PORT));
-            System.out.println("Server aperto su porta " + PORT);
+            clientSSC = ServerSocketChannel.open();
+            ServerSocket clientServerSocket = clientSSC.socket();
+            clientServerSocket.bind(new InetSocketAddress(Utils.ADDRESS, Utils.CLIENT_PORT));
+            System.out.println("Server aperto su porta " + Utils.CLIENT_PORT);
 
-            serverSocketChannel.configureBlocking(false);
+            clientSSC.configureBlocking(false);
             selector = Selector.open();
-            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+            clientSSC.register(selector, SelectionKey.OP_ACCEPT);
         }
         catch (IOException ioe)
         {
-            System.err.println("Error opening TCP socket " + ioe.toString() + ioe.getMessage());
+            System.err.println("Error opening server socket for client reqeusts " + ioe.toString() + ioe.getMessage());
             ioe.printStackTrace();
             return;
         }
@@ -109,7 +124,7 @@ public class MainServer
                         SocketChannel client = server.accept();
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
-                        System.out.println("Connessione dal client " + client.getLocalAddress());
+                        System.out.println("Connessione dal client " + client.getLocalAddress() + " from " + client.getRemoteAddress());
                     }
                     else if(key.isReadable()) //sto per leggere da una socket
                     {
@@ -123,7 +138,7 @@ public class MainServer
                             if(op_in == null)
                                 throw new NullPointerException();
                         }
-                        catch(ClassNotFoundException | NullPointerException e)
+                        catch(ClassNotFoundException e)
                         {
                             System.err.println("Error on reading Operation " + e.toString() + " " + e.getMessage());
                             e.printStackTrace();
@@ -133,13 +148,34 @@ public class MainServer
                             key.interestOps(SelectionKey.OP_WRITE);
                             continue;
                         }
+                        catch(NullPointerException e)
+                        {
+                            key.cancel();
+                            clientSocketChannel.close();
+                            continue;
+                        }
 
                         String usr = op_in.getUsername();
                         String psw = op_in.getPassword();
 
-                        System.out.println("OPERAZIONE: " + op_in.getCode());
+                        //System.out.println(op_in.getCode());
+
                         switch (op_in.getCode())
                         {
+
+                            case PENDING_INVITATIONS:
+                            {
+                                UserInfo userInfo = registeredUsers.getUser(usr);
+
+                                /* mando inviti pendenti all'utente */
+                                Utils.sendObject(clientSocketChannel,userInfo.getPendingInvitations());
+
+                                /* pulisco la lista degli inviti pendenti */
+                                userInfo.clearPendingInvites();
+
+                                answerCode = opCode.OP_OK;
+                                break;
+                            }
 
                             case FILE_LIST:
                             {
@@ -149,7 +185,7 @@ public class MainServer
                                 try
                                 {
                                     ArrayList<String> nameToSend = new ArrayList<>();
-                                    for (String s: registeredUsers.getUser(usr, psw).getFiles())
+                                    for (String s: registeredUsers.getUser(usr).getFiles())
                                     {
                                         /* costruisco l'opportuno pattern che il client leggerà
                                            nomefile_owner_numsezioni
@@ -161,13 +197,15 @@ public class MainServer
                                     answerCode = opCode.OP_OK;
                                 }
                                 catch(IOException ioe)
-                                { answerCode = opCode.ERR_FILE_LIST; }
+                                { answerCode = opCode.OP_FAIL; }
                                 break;
                             }
 
                             case LOGIN:
                             {
-                                UserInfo userInfo = registeredUsers.getUser(usr,psw);
+                                UserInfo userInfo = registeredUsers.getUser(usr);
+                                //if (userInfo != null) System.out.println(userInfo.isOnline());
+
                                 if(userInfo == null)
                                     answerCode = opCode.ERR_USER_UNKNOWN;
                                 else if(!userInfo.getPassword().equals(psw))
@@ -176,6 +214,12 @@ public class MainServer
                                     answerCode = opCode.ERR_USER_ALREADY_LOGGED;
                                 else if(registeredUsers.setStatus(usr,psw,1))
                                 {
+                                    /* salvo la socket che userà il client per ricevere gli inviti */
+                                    SocketChannel inviteSocket = inviteSSC.accept();
+                                    userInfo.setInviteSocketChannel(inviteSocket);
+
+                                    System.out.println("Connessione per inviti " + inviteSocket.getLocalAddress() + " from " + inviteSocket.getRemoteAddress());
+
                                     /* creo la directory (solo se non esiste già)
                                        che conterrà tutti i file creati da questo utente */
 
@@ -192,26 +236,27 @@ public class MainServer
                             {
                                 if(registeredUsers.setStatus(usr,psw,0))
                                 {
-                                    answerCode = opCode.OP_OK;
+                                    //answerCode = opCode.OP_OK;
 
                                     //mando la risposta al client (con OP_OK)
                                     Utils.sendBytes(clientSocketChannel,answerCode.toString().getBytes());
 
                                     //sblocco l'eventuale sezione di un file in modifica dall'utente
-                                    String editingFilename = registeredUsers.getUser(usr,psw).getEditingFilename();
-                                    int editingSection = registeredUsers.getUser(usr,psw).getEditingSection();
+                                    String editingFilename = registeredUsers.getUser(usr).getEditingFilename();
+                                    int editingSection = registeredUsers.getUser(usr).getEditingSection();
 
                                     if(!editingFilename.equals(""))
                                         userFiles.get(editingFilename).unlockSection(editingSection - 1);
 
-                                    //chiudo la socket
-                                    clientSocketChannel.close();
+                                    //chiudo le due socket del client
                                     key.cancel();
+                                    clientSocketChannel.close();
+
+                                    UserInfo userInfo = registeredUsers.getUser(usr);
+                                    userInfo.getInviteSocketChannel().close();
+
                                     continue;
                                 }
-                                else
-                                    answerCode = opCode.OP_FAIL;
-
                                 break;
                             }
 
@@ -247,12 +292,27 @@ public class MainServer
 
                                     //creo la struttura dati contenente le info del file, da aggiungere alla collezione
                                     FileInfo fileInfo = new FileInfo(usr,nsections);
+                                    fileInfo.setOwner(usr);
                                     userFiles.putIfAbsent(collectionFileName, fileInfo);
 
+
                                     //aggiungo il file alla lista di quelli gestibili dall'utente che l'ha creato
-                                    registeredUsers.getUser(usr,psw).addFile(collectionFileName);
+                                    registeredUsers.getUser(usr).addFile(collectionFileName);
                                     answerCode = (err) ? opCode.OP_FAIL : opCode.OP_OK;
                                 }
+                                break;
+                            }
+
+                            case SHOW_ALL:
+                            {
+                                String filename = op_in.getFilename();
+                                String owner = op_in.getOwner();
+                                String collectionFilename = filename + "_" + owner;
+
+                                ArrayList<Boolean> sections = userFiles.get(collectionFilename).getSections();
+
+                                Utils.sendObject(clientSocketChannel,sections);
+                                answerCode = opCode.OP_OK;
                                 break;
                             }
 
@@ -264,7 +324,7 @@ public class MainServer
                                 String collectionFilename = filename + "_" + owner;
                                 int section = op_in.getSection();
 
-                                if(registeredUsers.getUser(usr,psw).canEdit(collectionFilename)) //utente con permessi
+                                if(registeredUsers.getUser(usr).canEdit(collectionFilename)) //utente con permessi
                                 {
                                     if(!userFiles.get(collectionFilename).isLocked(section-1)) //sezione non lockata
                                     {
@@ -273,9 +333,9 @@ public class MainServer
                                             //lock sulla sezione
                                             userFiles.get(collectionFilename).lockSection(section-1);
 
-                                            //salvo quale file l'utente sta modificando
-                                            registeredUsers.getUser(usr,psw).setEditingFilename(collectionFilename);
-                                            registeredUsers.getUser(usr,psw).setEditingSection(section);
+                                            //salvo qual è il file che l'utente sta modificando
+                                            registeredUsers.getUser(usr).setEditingFilename(collectionFilename);
+                                            registeredUsers.getUser(usr).setEditingSection(section);
                                         }
                                         answerCode = opCode.OP_OK;
                                     }
@@ -285,7 +345,6 @@ public class MainServer
                                 }
                                 else
                                     answerCode = opCode.ERR_PERMISSION_DENIED;
-
                                 break;
                             }
 
@@ -297,32 +356,13 @@ public class MainServer
                                 int section = op_in.getSection();
 
                                 //tengo traccia del fatto che l'utente non sta più editando
-                                registeredUsers.getUser(usr,psw).setEditingFilename("");
+                                registeredUsers.getUser(usr).setEditingFilename("");
+                                registeredUsers.getUser(usr).setEditingSection(0);
 
                                 //ricevo il nuovo file dal client
-                                try{ Utils.transferFromSection(clientSocketChannel,true); }
-                                catch(IOException ioe)
-                                {
-                                    answerCode = opCode.OP_FAIL;
-                                    break;
-                                }
-
-                                answerCode = opCode.OP_OK;
-                                assert (userFiles.get(collectionFilename).isLocked(section-1));
-                                userFiles.get(collectionFilename).unlockSection(section-1);
-
-                                break;
-                            }
-
-                            case SECTION_SEND:
-                            {
-                                String filename = op_in.getFilename();
-                                String owner = op_in.getOwner();
-                                int section = op_in.getSection();
-
                                 try
                                 {
-                                    Utils.transferToSection(clientSocketChannel,getPath(usr,filename,section).replaceFirst("./",""));
+                                    Utils.transferFromSection(clientSocketChannel,true);
                                     answerCode = opCode.OP_OK;
                                 }
                                 catch(IOException ioe)
@@ -330,6 +370,73 @@ public class MainServer
                                     answerCode = opCode.OP_FAIL;
                                     break;
                                 }
+
+                                //sblocco la sezione che l'utente stava editando
+                                userFiles.get(collectionFilename).unlockSection(section-1);
+
+                                break;
+                            }
+
+                            case SECTION_RECEIVE:
+                            {
+                                String filename = op_in.getFilename();
+                                String owner = op_in.getOwner();
+                                int section = op_in.getSection();
+
+                                try
+                                {
+                                    Utils.transferToSection(clientSocketChannel,getPath(owner,filename,section).replaceFirst("./",""));
+                                    answerCode = opCode.OP_OK;
+                                }
+                                catch(IOException ioe)
+                                {
+                                    answerCode = opCode.OP_FAIL;
+                                    break;
+                                }
+                                break;
+                            }
+
+                            case INVITE:
+                            {
+                                String filename = op_in.getFilename();
+                                String owner = op_in.getOwner();
+                                String collectionFilename = filename + "_" + owner;
+                                String collaborator = usr;
+
+                                UserInfo userInfo = registeredUsers.getUser(collaborator);
+
+                                if(userInfo == null) //utente inesistente
+                                    answerCode = opCode.ERR_USER_UNKNOWN;
+                                /*else if(userFiles.get(collectionFilename).getOwner().equals(collaborator))
+                                {
+                                    answerCode = opCode.ERR_OWNER_INVITED;
+                                }*/
+                                else if(userInfo.canEdit(collectionFilename)) //controllo che l'utente non sia già stato invitato
+                                {
+                                    answerCode = opCode.ERR_USER_ALREADY_INVITED;
+                                }
+                                else
+                                {
+                                    System.out.println("COLLECTION FILENAME:" + collectionFilename);
+                                    userInfo.addFile(collectionFilename);
+
+                                    //utente non online, aggiungo l'invito alla sua lista di inviti pendenti
+                                    if(!userInfo.isOnline())
+                                    {
+                                        Invitation invitation = new Invitation(owner, filename, new Date());
+                                        userInfo.addPendingInvite(invitation);
+                                    }
+
+                                    else
+                                    {
+                                        //mando in tempo reale l'invito all'utente
+                                        Invitation invitation = new Invitation(owner, filename, new Date());
+                                        Utils.sendObject(userInfo.getInviteSocketChannel(), invitation);
+                                    }
+
+                                    answerCode = opCode.OP_OK;
+                                }
+                                break;
                             }
 
                             default:
