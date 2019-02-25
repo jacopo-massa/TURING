@@ -19,14 +19,12 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
     private int[] max_sections;
 
     private String usr;
-    private String psw;
 
     public ManagePanel(frameCode operation)
     {
         this.clientFiles = TuringPanel.clientFiles;
         this.operation = operation;
-        this.usr = LoginPanel.usr;
-        this.psw = LoginPanel.psw;
+        this.usr = MainClient.username;
 
 
         this.setLayout(new BorderLayout());
@@ -99,13 +97,14 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
         if(e.getSource() instanceof JButton)
         {
-            frameCode nextFrame = frameCode.TURING;
             switch (cmd)
             {
                 case "OK":
                 case "SHOW ALL":
                 {
                     boolean goback = true;
+                    boolean canreceive = false;
+
                     int selectedIndex = name.getSelectedIndex();
                     int section;
                     filename = titles[selectedIndex];
@@ -132,8 +131,12 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
                         case SECTION_EDITING:
                         {
-                            JOptionPane.showMessageDialog(this,"Sezione in modifica da parte di un altro utente","WARNING",JOptionPane.WARNING_MESSAGE);
+                            if(!operation.equals(frameCode.EDIT))
+                                canreceive = true;
+
+                            JOptionPane.showMessageDialog(this,"Sezione in fase di editing","WARNING",JOptionPane.WARNING_MESSAGE);
                             goback = false;
+
                             break;
                         }
 
@@ -146,37 +149,43 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
                         case OP_OK:
                         {
-                            if (cmd.equals("SHOW ALL"))
-                            {
-                                int counter=0;
-                                ArrayList<Boolean> editedSections = MainClient.editedSections;
-                                String msg = "";
-                                for (int i = 0; i < editedSections.size(); i++)
-                                {
-                                    if(editedSections.get(i))
-                                    {
-                                        msg += " - Sezione " + (i + 1) + "\n";
-                                        counter++;
-                                    }
-                                }
-                                if(counter == 0)
-                                    msg = "NESSUNA SEZIONE in fase di editing: \n";
-                                else
-                                    msg = "Le seguenti sezioni sono in fase di editing: \n" + msg;
-
-                                JOptionPane.showMessageDialog(this,msg,"INFORMATION",JOptionPane.INFORMATION_MESSAGE);
-                            }
-
-                            if((TuringPanel.editingFilename != null && !TuringPanel.editingFilename.equals("")))
-                                nextFrame = frameCode.TURING_EDIT;
+                            canreceive = true;
 
                             if(operation == frameCode.EDIT)
                             {
-                                nextFrame = frameCode.TURING_EDIT;
                                 TuringPanel.editingFilename = filename + "_" + owner + "_" + section;
+                                TuringPanel.editButton.setEnabled(false);
+                                TuringPanel.endEditButton.setEnabled(true);
+                                Utils.sendChatMessage(usr,"joined the chat", TuringPanel.editingFileAddress,this);
+
                             }
+                        }
+                    }
 
+                    if(canreceive)
+                    {
+                        boolean showAll = (cmd.equals("SHOW ALL"));
+                        ArrayList<Integer> editedSections = new ArrayList<>();
 
+                        for (int i = (showAll) ? 1 : section; i <= section; i++)
+                        {
+                            if (MainClient.recvSection(filename, owner, i) == opCode.SECTION_EDITING)
+                                editedSections.add(i);
+                        }
+
+                        if(showAll)
+                        {
+                            String msg;
+                            if(editedSections.size() == 0)
+                                msg = "NESSUNA SEZIONE in fase di editing: \n";
+                            else
+                            {
+                                msg = "Le seguenti sezioni sono in fase di editing: \n";
+                            }
+                            for (int i: editedSections)
+                                msg += " - Sezione " + i + "\n";
+
+                            JOptionPane.showMessageDialog(this,msg,"INFORMATION",JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
 
@@ -186,7 +195,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
 
                 case "ANNULLA":
                 {
-                    Utils.showNextFrame(nextFrame,this);
+                    Utils.showPreviousFrame(this);
                     break;
                 }
             }

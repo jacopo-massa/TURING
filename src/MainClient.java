@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -12,17 +13,16 @@ public class MainClient
 {
     static SocketChannel clientSocketChannel;
     static SocketChannel inviteSocketChannel;
-    static ArrayList<Boolean> editedSections;
     static Thread inviteThread;
 
     static String username;
     static String password;
-    static ArrayList<Invitation> pendingInvitations;
+    static ArrayList<Message> pendingInvitations;
 
     public static void main(String[] args)
     {
         //creo il frame di login
-        new MyFrame(null,frameCode.LOGIN);
+        new MyFrame(null, frameCode.LOGIN);
 
         //imposto una funzione di cleanup che elimina i file dell'utente alla terminazione del client
         Runtime.getRuntime().addShutdownHook(
@@ -31,13 +31,11 @@ public class MainClient
                     try
                     {
                         Utils.deleteDirectory(Utils.CLIENT_FILES_PATH + username);
-
                     }
                     catch(IOException ioe) {System.err.println("Can't delete " + Utils.CLIENT_FILES_PATH + username); }
+
                     logoutUser();
                 }));
-
-        //creo un thread che resta in ascolto per gli inviti in tempo reale
     }
 
     static boolean sendReq(Operation op)
@@ -46,9 +44,19 @@ public class MainClient
         {
             Utils.sendObject(clientSocketChannel,op);
         }
+        catch(NullPointerException npe)
+        {
+            System.err.println("Connection not yet open");
+            return false;
+        }
+        catch(ClosedChannelException e)
+        {
+            System.err.println("Closed Channel");
+            return false;
+        }
         catch(IOException ioe)
         {
-            System.err.println("Error in sending operation " + op.getCode());
+            System.err.println("Error sending operation " + op.getCode());
             ioe.printStackTrace();
             return false;
         }
@@ -103,7 +111,7 @@ public class MainClient
         return socketChannel;
     }
 
-    static int register()
+    static opCode register()
     {
         IntRegistration registration;
         Remote remote;
@@ -119,7 +127,7 @@ public class MainClient
         {
             System.err.println("Error in invoking registry");
             e.printStackTrace();
-            return -1;
+            return opCode.OP_FAIL;
         }
 
         try
@@ -127,16 +135,16 @@ public class MainClient
             if(registration.registerUser(username,password))
             {
                 loginUser();
-                return 1;
+                return opCode.OP_OK;
             }
             else
-                return 0;
+                return opCode.ERR_USER_ALREADY_LOGGED;
         }
         catch(RemoteException re)
         {
             System.err.println("Error in invoking method \"registerUser\" ");
             re.printStackTrace();
-            return -1;
+            return opCode.OP_FAIL;
         }
     }
 
@@ -179,7 +187,7 @@ public class MainClient
 
                     try
                     {
-                        pendingInvitations = (ArrayList<Invitation>) Utils.recvObject(clientSocketChannel);
+                        pendingInvitations = (ArrayList<Message>) Utils.recvObject(clientSocketChannel);
 
                         if(pendingInvitations == null)
                             throw new NullPointerException();
@@ -204,26 +212,37 @@ public class MainClient
         Operation request = new Operation(username);
         request.setPassword(password);
         request.setCode(opCode.LOGOUT);
+
         sendReq(request);
 
         //chiudo socket del client
-        try { clientSocketChannel.close(); }
-        catch(IOException ioe)
+        if(clientSocketChannel != null)
         {
-            System.err.println("Error in closing clientSocketChannel");
-            ioe.printStackTrace();
+            try { clientSocketChannel.close(); }
+            catch(IOException ioe)
+            {
+                System.err.println("Error in closing clientSocketChannel");
+                ioe.printStackTrace();
+            }
         }
 
         //interrompo il thread degli inviti
-        inviteThread.interrupt();
+        if(inviteThread != null)
+            inviteThread.interrupt();
+
 
         //chiudo socket degli inviti
-        try { inviteSocketChannel.close(); }
-        catch(IOException ioe)
+        if(inviteSocketChannel != null)
         {
-            System.err.println("Error in closing inviteSocketChannel");
-            ioe.printStackTrace();
+            try { inviteSocketChannel.close(); }
+            catch(IOException ioe)
+            {
+                System.err.println("Error in closing inviteSocketChannel");
+                ioe.printStackTrace();
+            }
         }
+
+        Utils.sendChatMessage(username,"left the chat",TuringPanel.editingFileAddress,null);
 
         return opCode.OP_OK;
     }
@@ -252,45 +271,54 @@ public class MainClient
         request.setSection(nsection);
 
         sendReq(request);
+        opCode answerCode = getAnswer();
 
-
-        opCode answerCode;
-        boolean showAll = (code == opCode.SHOW_ALL);
-
-        if(showAll)
+        if(code == opCode.EDIT && answerCode == opCode.OP_OK)
         {
+            String address = null;
+            //ricevo l'indirizzo di multicast assegnato al file che ho chiesto di editare
             try
             {
-                editedSections = (ArrayList<Boolean>) Utils.recvObject(clientSocketChannel);
+                address = new String(Utils.recvBytes(clientSocketChannel));
+                TuringPanel.editingFileAddress = address;
                 answerCode = getAnswer();
             }
-            catch (ClassNotFoundException | IOException e)
+            catch(IOException e)
             {
-                System.err.println("Can't download list of edited sections");
+                System.err.println("Can't download multicast address");
                 answerCode = opCode.OP_FAIL;
             }
-        }
-        else
-            answerCode = getAnswer();
 
-        if(answerCode == opCode.OP_OK || (code != opCode.EDIT && answerCode == opCode.SECTION_EDITING))
-        {
-            for (int i = (showAll) ? 1 : nsection; i <= nsection; i++)
-            {
-                try
-                {
-                    request.setCode(opCode.SECTION_RECEIVE);
-                    request.setSection(i);
-                    sendReq(request);
-
-                    Utils.transferFromSection(clientSocketChannel,false);
-                    answerCode = getAnswer();
-                }
-                catch(IOException ioe)
-                { answerCode = opCode.OP_FAIL; }
-            }
+            //creo il thread che si occuperò della chat
+            Thread chatThread = new Thread(new ChatTask(address,Utils.MULTICAST_PORT));
+            chatThread.start();
         }
         return answerCode;
+    }
+
+    static opCode recvSection(String name, String owner, int section)
+    {
+        Operation request = new Operation(username);
+        request.setPassword(password);
+        request.setCode(opCode.SECTION_RECEIVE);
+        request.setFilename(name);
+        request.setOwner(owner);
+        request.setSection(section);
+        sendReq(request);
+
+        opCode answerCode;
+
+        try
+        {
+            Utils.transferFromSection(clientSocketChannel, username,false);
+            answerCode = getAnswer();
+        }
+        catch(IOException ioe)
+        { answerCode = opCode.OP_FAIL; }
+
+        return answerCode;
+
+
     }
 
     static opCode endEditDocument(String name, String owner, int section)
@@ -327,8 +355,7 @@ public class MainClient
         request.setOwner(username);
 
         sendReq(request);
-        opCode answerCode = getAnswer();
-        return answerCode;
+        return getAnswer();
     }
 
 }

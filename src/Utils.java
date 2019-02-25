@@ -2,6 +2,9 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
@@ -22,8 +25,11 @@ class Utils
     static int REGISTRATION_PORT = 5000;
     static int CLIENT_PORT = 5001;
     static int INVITE_PORT = 5002;
+    static int MULTICAST_PORT = 5003;
 
-    static void writeN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
+    /* utility per la gestione di ricezione/invio oggetti e bytes su socket */
+
+    private static void writeN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
     {
         int counter = 0;
 
@@ -32,7 +38,7 @@ class Utils
         while(counter < n);
     }
 
-    static void readN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
+    private static void readN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
     {
         int counter = 0;
         do
@@ -40,48 +46,52 @@ class Utils
         while(counter < n);
     }
 
-    static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
+    private static ByteBuffer serializeObject(Serializable serializable) throws IOException
     {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for(int i=0;i<4;i++)
-            baos.write(0);
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(serializable);
         oos.close();
-        ByteBuffer wrap = ByteBuffer.wrap(baos.toByteArray());
-        wrap.putInt(0, baos.size()-4);
-        //socket.write(wrap);
-        writeN(socket,wrap,baos.size());
+
+        return ByteBuffer.wrap(baos.toByteArray());
+    }
+
+    static Serializable deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException
+    {
+        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+        return (Serializable) ois.readObject();
+    }
+
+    static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
+    {
+        ByteBuffer wrap = serializeObject(serializable);
+
+        int length = wrap.remaining();
+        sendLength(socket,length);
+
+        writeN(socket,wrap,length);
     }
 
     static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
     {
-        ByteBuffer lengthByteBuffer = ByteBuffer.wrap(new byte[4]);
-        ByteBuffer dataByteBuffer = null;
-        int length = 0;
+        ByteBuffer dataByteBuffer;
 
-        readN(socket,lengthByteBuffer,4);
-        if (lengthByteBuffer.remaining() == 0)
+        int length = recvLength(socket);
+
+        if(length != 0)
         {
-            length = lengthByteBuffer.getInt(0);
             dataByteBuffer = ByteBuffer.allocate(length);
-            lengthByteBuffer.clear();
-        }
 
-        readN(socket,dataByteBuffer,length);
+            readN(socket,dataByteBuffer,length);
 
-        if(dataByteBuffer == null)
-            return null;
+            Serializable ret = deserializeObject(dataByteBuffer.array());
 
-        if (dataByteBuffer.remaining() == 0)
-        {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(dataByteBuffer.array()));
-            final Serializable ret = (Serializable) ois.readObject();
             // clean up
             dataByteBuffer.clear();
             return ret;
         }
-        return null;
+        else
+            return null;
     }
 
     private static void sendLength(SocketChannel socket, int length) throws IOException
@@ -161,8 +171,8 @@ class Utils
             throw new IOException();
         }
 
-        //elimino Utils.*_FILES_PATH dal filepath
-        String pathWithoutSource = filepath.split("/",2)[1];
+        //elimino "Utils.*_FILES_PATH/<username>/" dal filepath
+        String pathWithoutSource = filepath.split("/",3)[2];
 
         byte[] pathBytes = pathWithoutSource.getBytes();
 
@@ -185,13 +195,13 @@ class Utils
         fis.close();
     }
 
-    static void transferFromSection(SocketChannel socket, boolean isServer) throws IOException
+    static void transferFromSection(SocketChannel socket, String username, boolean isServer) throws IOException
     {
         //leggo il path
         byte[] pathBytes = recvBytes(socket);
         String filepath = new String(pathBytes);
 
-        filepath = ((isServer) ? Utils.SERVER_FILES_PATH : Utils.CLIENT_FILES_PATH) + filepath;
+        filepath = ((isServer) ? Utils.SERVER_FILES_PATH : Utils.CLIENT_FILES_PATH) + username + "/" + filepath;
 
         Files.createDirectories(Paths.get(filepath.substring(0,filepath.lastIndexOf("/"))));
 
@@ -217,6 +227,8 @@ class Utils
         fos.close();
     }
 
+    /* --------------------------------- */
+
     static void deleteDirectory(String path) throws IOException
     {
         Files.walk(Paths.get(path))
@@ -225,15 +237,25 @@ class Utils
                 .forEach(File::delete);
     }
 
+    static void showPreviousFrame(Component c)
+    {
+        //ottengo il frame corrente
+        MyFrame currentFrame = (MyFrame) SwingUtilities.getWindowAncestor(c);
+
+        //ottengo il suo precedente
+        MyFrame oldFrame = currentFrame.getOldFrame();
+
+        oldFrame.setVisible(true);
+        currentFrame.dispose();
+    }
+
     static void showNextFrame(frameCode frame, Component c)
     {
-        //nascondo il frame corrente
-        MyFrame old_f = (MyFrame) SwingUtilities.getWindowAncestor(c);
-        Point oldLocation = old_f.getLocationOnScreen();
-        old_f.setVisible(false);
+        //ottengo il frame corrente
+        MyFrame oldFrame = (MyFrame) SwingUtilities.getWindowAncestor(c);
 
         //mostro il frame successivo
-        new MyFrame(oldLocation, frame);
+        new MyFrame(oldFrame, frame);
     }
 
     static synchronized void appendToPane(JTextPane tp, String msg, Color c, boolean bold)
@@ -256,15 +278,20 @@ class Utils
         catch (BadLocationException e){e.printStackTrace();}
     }
 
-    static void printInvite(String owner, String filename, Date date)
+    static void printTimeStamp(Date date)
     {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
         String textToAppend = "[" + formatter.format(date) + "] - ";
 
         Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLACK,false);
+    }
 
-        textToAppend = "invite from ";
+    static void printInvite(String owner, String filename, Date date)
+    {
+        printTimeStamp(date);
+
+        String textToAppend = "invite from ";
         Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLUE,false);
 
         Utils.appendToPane(TuringPanel.receiveArea, owner, Color.RED,true);
@@ -273,5 +300,58 @@ class Utils
         Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLUE,false);
 
         Utils.appendToPane(TuringPanel.receiveArea, filename + "\n", Color.RED,true);
+    }
+
+    static void sendChatMessage(String sender, String msg, String address, Component component)
+    {
+        if(address == null)
+        {
+            if(component != null)
+                JOptionPane.showMessageDialog(component,"Non stai editando nessun file!","WARNING",JOptionPane.WARNING_MESSAGE);
+        }
+        else if(msg.trim().isEmpty())
+            return;
+        else
+        {
+            DatagramSocket socket;
+            InetAddress group;
+
+            try
+            {
+                socket = new DatagramSocket();
+                group = InetAddress.getByName(address);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                if(component != null)
+                    JOptionPane.showMessageDialog(component,"Errore nell'invio del messaggio","ERRORE",JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Message message = new Message(sender, msg, new Date());
+
+            try
+            {
+                ByteBuffer msgBuffer = Utils.serializeObject(message);
+                byte[] msgBytes = msgBuffer.array();
+
+                byte[] lengthBytes = Integer.toString(msgBytes.length).getBytes();
+                DatagramPacket lengthPacket = new DatagramPacket(lengthBytes, lengthBytes.length, group, Utils.MULTICAST_PORT);
+                socket.send(lengthPacket);
+
+                DatagramPacket msgPacket = new DatagramPacket(msgBytes, msgBytes.length, group, Utils.MULTICAST_PORT);
+                socket.send(msgPacket);
+            }
+            catch(IOException e)
+            {
+                System.err.println("Can't serialize chat Message");
+                if(component != null)
+                    JOptionPane.showMessageDialog(component,"Errore nell'invio del messaggio","ERRORE",JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            socket.close();
+        }
     }
 }

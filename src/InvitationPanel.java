@@ -2,9 +2,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
-public class InvitationPanel extends JPanel implements ActionListener
+public class InvitationPanel extends JPanel implements ActionListener, KeyListener
 {
 
     private JComboBox filename;
@@ -16,12 +18,10 @@ public class InvitationPanel extends JPanel implements ActionListener
     private String[] owners;
 
     private String usr;
-    private String psw;
 
     public InvitationPanel()
     {
-        this.usr = LoginPanel.usr;
-        this.psw = LoginPanel.psw;
+        this.usr = MainClient.username;
         this.clientFiles = TuringPanel.clientFiles;
 
         int size = clientFiles.size();
@@ -62,83 +62,87 @@ public class InvitationPanel extends JPanel implements ActionListener
         okButton.addActionListener(this);
         cancelButton.addActionListener(this);
 
+        collaborator.addKeyListener(this);
+
         this.add(northPanel,BorderLayout.NORTH);
         this.add(centerPanel,BorderLayout.CENTER);
         this.add(southPanel,BorderLayout.SOUTH);
     }
+
+    private void invite()
+    {
+        String chosenCollaborator = collaborator.getText();
+
+        if (chosenCollaborator.isEmpty())
+        {
+            JOptionPane.showMessageDialog(this, "Username collaboratore necessario!", "WARNING", JOptionPane.WARNING_MESSAGE);
+        }
+        else if (chosenCollaborator.equals(usr))
+        {
+            JOptionPane.showMessageDialog(this, "Non puoi invitare te stesso!", "WARNING", JOptionPane.WARNING_MESSAGE);
+        }
+        else
+        {
+            boolean goback = true;
+            String chosenFilename = titles[filename.getSelectedIndex()];
+
+            switch (MainClient.invite(chosenFilename, chosenCollaborator))
+            {
+                case OP_FAIL:
+                {
+                    JOptionPane.showMessageDialog(this, "Errore nell'invio dell'invito", "ERROR", JOptionPane.ERROR_MESSAGE);
+                    break;
+                }
+
+                case ERR_USER_UNKNOWN:
+                {
+                    JOptionPane.showMessageDialog(this, "Utente sconosciuto!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                    goback = false;
+                    break;
+                }
+
+                case ERR_USER_ALREADY_INVITED:
+                {
+                    JOptionPane.showMessageDialog(this, "Utente già invitato!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                    goback = false;
+                    break;
+                }
+
+                case ERR_OWNER_INVITED:
+                {
+                    JOptionPane.showMessageDialog(this, "Non puoi invitare il proprietario del file!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                    goback = false;
+                    break;
+                }
+
+                case OP_OK:
+                {
+                    JOptionPane.showMessageDialog(this, "Invito mandato con successo", "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
+                    break;
+                }
+            }
+
+            if(goback)
+                Utils.showPreviousFrame(this);
+        }
+    }
+
     public void actionPerformed(ActionEvent e)
     {
         String cmd = e.getActionCommand().toUpperCase();
-        frameCode nextFrame = frameCode.TURING;
-
-        switch (cmd)
-        {
-            case "OK":
-            {
-                String chosenCollaborator = collaborator.getText();
-                boolean goback = true;
-
-                if(chosenCollaborator.isEmpty())
-                {
-                    JOptionPane.showMessageDialog(this,"Username collaboratore necessario!","WARNING",JOptionPane.WARNING_MESSAGE);
-                    goback = false;
-                }
-                else if(chosenCollaborator.equals(usr))
-                {
-                    JOptionPane.showMessageDialog(this,"Non puoi invitare te stesso!","WARNING",JOptionPane.WARNING_MESSAGE);
-                    goback = false;
-                }
-                else
-                {
-                    String chosenFilename = titles[filename.getSelectedIndex()];
-                    switch (MainClient.invite(chosenFilename,chosenCollaborator))
-                    {
-                        case OP_FAIL:
-                        {
-                            JOptionPane.showMessageDialog(this,"Errore nell'invio dell'invito","ERROR",JOptionPane.ERROR_MESSAGE);
-                            break;
-                        }
-
-                        case ERR_USER_UNKNOWN:
-                        {
-                            JOptionPane.showMessageDialog(this,"Utente sconosciuto!","WARNING",JOptionPane.WARNING_MESSAGE);
-                            goback = false;
-                            break;
-                        }
-
-                        case ERR_USER_ALREADY_INVITED:
-                        {
-                            JOptionPane.showMessageDialog(this,"Utente già invitato!","WARNING",JOptionPane.WARNING_MESSAGE);
-                            goback = false;
-                            break;
-                        }
-
-                        case ERR_OWNER_INVITED:
-                        {
-                            {
-                                JOptionPane.showMessageDialog(this,"Non puoi invitare il proprietario del file!","WARNING",JOptionPane.WARNING_MESSAGE);
-                                goback = false;
-                                break;
-                            }
-                        }
-
-                        case OP_OK:
-                        {
-                            JOptionPane.showMessageDialog(this,"Invito mandato con successo","SUCCESS",JOptionPane.INFORMATION_MESSAGE);
-                            break;
-                        }
-                    }
-                }
-
-                if(!goback)
-                    break;
-            }
-            case "ANNULLA":
-            {
-                Utils.showNextFrame(nextFrame,this);
-                break;
-            }
-        }
-
+        if ("OK".equals(cmd))
+            invite();
+        else if("ANNULLA".equals(cmd))
+            Utils.showPreviousFrame(this);
     }
+
+    public void keyTyped(KeyEvent e) {}
+
+    public void keyPressed(KeyEvent e)
+    {
+        if(e.getKeyCode() == KeyEvent.VK_ENTER)
+            invite();
+    }
+
+    public void keyReleased(KeyEvent e) {}
 }

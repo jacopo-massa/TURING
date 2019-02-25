@@ -4,17 +4,20 @@ import javax.swing.*;
 
 class MyFrame extends JFrame
 {
-    MyFrame(Point location, frameCode frame)
+    private MyFrame oldFrame;
+    private Point location;
+    private JPanel p;
+
+    MyFrame(MyFrame oldFrame, frameCode frame)
     {
         super("TURING");
+        this.oldFrame = oldFrame;
         Container c = this.getContentPane();
-        JPanel p;
 
         switch (frame)
         {
             case TURING:
-            case TURING_EDIT:
-                p = new TuringPanel(frame);
+                p = new TuringPanel();
                 break;
 
             case CREATE:
@@ -43,8 +46,12 @@ class MyFrame extends JFrame
         this.pack();
 
         //imposto posizione della finestra
-
-        if(location == null)
+        if(oldFrame != null && oldFrame.isVisible())
+        {
+            location = oldFrame.getLocationOnScreen();
+            oldFrame.setVisible(false);
+        }
+        else
         {
             Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
             location = new Point(
@@ -65,5 +72,9 @@ class MyFrame extends JFrame
             public void focusGained(FocusEvent aE)
             { p.requestFocusInWindow(); }
         });
+    }
+
+    public MyFrame getOldFrame() {
+        return oldFrame;
     }
 }

@@ -12,7 +12,6 @@ public enum opCode
 
     PENDING_INVITATIONS,
     FILE_LIST,
-    SECTION_SEND,
     SECTION_RECEIVE,
 
     /* esiti operazioni */

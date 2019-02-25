@@ -6,13 +6,15 @@ public class FileInfo
     private int nsections;
     private boolean[] sections;
     private int counterEditors;
+    private String address;
 
 
-    public FileInfo(String owner, int nsections)
+    public FileInfo(String owner, int nsections, String address)
     {
         this.owner = owner;
         this.nsections = nsections;
         this.counterEditors = 0;
+        this.address = address;
         sections = new boolean[nsections];
         for (boolean b : sections)
         { b = false; }
@@ -40,21 +42,9 @@ public class FileInfo
         sections[section] = false;
     }
 
-
     public boolean isLocked(int section)
     {
         return sections[section];
-    }
-
-    public ArrayList<Boolean> getSections()
-    {
-        ArrayList<Boolean> al = new ArrayList<>(nsections);
-        for (int i = 0; i < nsections; i++)
-        {
-            al.add(i, sections[i]);
-        }
-
-        return al;
     }
 
     public void incCounterEditors()
@@ -65,9 +55,20 @@ public class FileInfo
     public void decCounterEditors()
     {
         this.counterEditors--;
+        if(counterEditors == 0)
+            MainServer.usedAddresses.remove(address);
     }
 
-    public int getCounterEditors() {
-        return counterEditors;
+    public void printStats()
+    {
+        int i = 1;
+        for (boolean b: sections)
+        {
+            System.out.println(i + " - " + b);
+        }
+    }
+
+    public String getAddress() {
+        return address;
     }
 }

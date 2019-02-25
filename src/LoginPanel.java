@@ -54,6 +54,10 @@ public class LoginPanel extends JPanel implements ActionListener
             {
                 JOptionPane.showMessageDialog(this,"Inserisci username/password!","ERRORE",JOptionPane.ERROR_MESSAGE);
             }
+            else if (usr.contains(" ") || psw.contains(" "))
+            {
+                JOptionPane.showMessageDialog(this,"Username e password non possono contenere spazi!","WARNING",JOptionPane.WARNING_MESSAGE);
+            }
             else
             {
                 MainClient.username = usr;
@@ -62,17 +66,17 @@ public class LoginPanel extends JPanel implements ActionListener
                 {
                     switch (MainClient.register())
                     {
-                        case 1: {
-                            //nascondo il frame di login
+                        case OP_OK:
+                        {
                             Utils.showNextFrame(frameCode.TURING,this);
                             break;
                         }
 
-                        case 0:
+                        case ERR_USER_ALREADY_LOGGED:
                             JOptionPane.showMessageDialog(this, "Esiste già un utente con questo username! (" + usr + ")", "WARNING", JOptionPane.WARNING_MESSAGE);
                             break;
 
-                        case -1:
+                        case OP_FAIL:
                             JOptionPane.showMessageDialog(this, "Errore durante la registrazione!", "ERROR", JOptionPane.ERROR_MESSAGE);
                             break;
                     }
@@ -83,7 +87,6 @@ public class LoginPanel extends JPanel implements ActionListener
                     {
                         case OP_OK:
                         {
-                            //nascondo il frame di login
                             Utils.showNextFrame(frameCode.TURING,this);
                             break;
                         }

@@ -1,30 +1,32 @@
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 
-public class TuringPanel extends JPanel implements ActionListener
+public class TuringPanel extends JPanel implements ActionListener, KeyListener
 {
     private String usr;
     private String psw;
-    private ArrayList<Invitation> pendingInvitations;
+    private ArrayList<Message> pendingInvitations;
 
     static JButton editButton;
     static JButton endEditButton;
     static JTextPane receiveArea;
+    static JTextField sendArea;
 
     static ArrayList<String> clientFiles;
     static String editingFilename;
+    static String editingFileAddress;
 
-    TuringPanel(frameCode operation)
+    TuringPanel()
     {
-        boolean canEdit = (operation != frameCode.TURING_EDIT);
-
-        this.usr = LoginPanel.usr;
-        this.psw = LoginPanel.psw;
+        this.usr = MainClient.username;
+        this.psw = MainClient.password;
         this.pendingInvitations = MainClient.pendingInvitations;
 
         this.setLayout(new BorderLayout());
@@ -42,14 +44,16 @@ public class TuringPanel extends JPanel implements ActionListener
 
         if(pendingInvitations != null)
         {
-            for (Invitation i: pendingInvitations)
-                Utils.printInvite(i.getSender(), i.getFilename(), i.getDate());
+            for (Message i: pendingInvitations)
+                Utils.printInvite(i.getSender(), i.getBody(), i.getDate());
         }
 
 
         JPanel westSouthPanel = new JPanel();
         westSouthPanel.setLayout(new GridLayout(1,2));
-        JTextField sendArea = new JTextField(15);
+        sendArea = new JTextField(15);
+        sendArea.setCaret(new DefaultCaret());
+        sendArea.addKeyListener(this);
         JButton sendButton = new JButton("Invia");
 
         westPanel.add(scrollPane,BorderLayout.WEST);
@@ -63,9 +67,9 @@ public class TuringPanel extends JPanel implements ActionListener
 
         JButton createButton = new JButton("Create");
         editButton = new JButton("Edit");
-        editButton.setEnabled(canEdit);
+        editButton.setEnabled(true);
         endEditButton = new JButton("End Edit");
-        endEditButton.setEnabled(!canEdit);
+        endEditButton.setEnabled(false);
         JButton showButton = new JButton("Show");
         JButton inviteButton = new JButton("Invite");
         JButton logoutButton = new JButton("Logout");
@@ -76,6 +80,7 @@ public class TuringPanel extends JPanel implements ActionListener
         showButton.addActionListener(this);
         inviteButton.addActionListener(this);
         logoutButton.addActionListener(this);
+        sendButton.addActionListener(this);
 
         eastPanel.add(createButton);
         eastPanel.add(editButton);
@@ -99,6 +104,11 @@ public class TuringPanel extends JPanel implements ActionListener
         {
             switch (cmd)
             {
+                case "INVIA":
+                {
+                    Utils.sendChatMessage(usr,sendArea.getText(),editingFileAddress,this);
+                    break;
+                }
                 case "LOGOUT":
                 {
                     switch(MainClient.logoutUser())
@@ -131,9 +141,7 @@ public class TuringPanel extends JPanel implements ActionListener
                     MainClient.sendReq(request);
 
                     try
-{
-                        clientFiles = (ArrayList<String>) Utils.recvObject(MainClient.clientSocketChannel);
-                    }
+                    { clientFiles = (ArrayList<String>) Utils.recvObject(MainClient.clientSocketChannel); }
                     catch(ClassNotFoundException | IOException ex)
                     {
                         System.err.println("Can't download file list");
@@ -170,7 +178,10 @@ public class TuringPanel extends JPanel implements ActionListener
                             JOptionPane.showMessageDialog(this,"Documento aggiornato con successo","SUCCESS",JOptionPane.INFORMATION_MESSAGE);
                             editButton.setEnabled(true);
                             endEditButton.setEnabled(false);
-                            editingFilename = "";
+                            editingFilename = null;
+
+                            Utils.sendChatMessage(usr,"left the chat", editingFileAddress,this);
+                            editingFileAddress = null;
                             break;
                         }
                         case OP_FAIL:
@@ -180,6 +191,18 @@ public class TuringPanel extends JPanel implements ActionListener
                     break;
                 }
             }
+        }
+    }
+
+    public void keyTyped(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {}
+
+    public void keyPressed(KeyEvent e)
+    {
+        if(e.getKeyCode() == KeyEvent.VK_ENTER)
+        {
+            Utils.sendChatMessage(usr,sendArea.getText(),editingFileAddress,this);
+            sendArea.setText("");
         }
     }
 }

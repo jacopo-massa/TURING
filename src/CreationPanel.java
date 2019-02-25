@@ -2,16 +2,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class CreationPanel extends JPanel implements ActionListener
+public class CreationPanel extends JPanel implements ActionListener, KeyListener
 {
 
     private JTextField name;
     private JSpinner nsection;
-    private String editingFilename;
 
     CreationPanel()
     {
-        this.editingFilename = TuringPanel.editingFilename;
         this.setLayout(new BorderLayout());
         JPanel northPanel = new JPanel();
         JPanel centerPanel = new JPanel();
@@ -38,66 +36,68 @@ public class CreationPanel extends JPanel implements ActionListener
         okButton.addActionListener(this);
         cancelButton.addActionListener(this);
 
+        name.addKeyListener(this);
+
         this.add(northPanel,BorderLayout.NORTH);
         this.add(centerPanel,BorderLayout.CENTER);
         this.add(southPanel,BorderLayout.SOUTH);
     }
 
-    public void actionPerformed(ActionEvent e)
+    private void create()
     {
-        String cmd = e.getActionCommand().toUpperCase();
-        String filename;
-        int section;
+        String filename = name.getText();
+        int section = (Integer) nsection.getValue();
 
-        if(e.getSource() instanceof JButton)
+        if (filename.equals(""))
         {
-            switch (cmd)
+            JOptionPane.showMessageDialog(this, "Nome del file necessario!", "WARNING", JOptionPane.WARNING_MESSAGE);
+        }
+        else
+        {
+            boolean goback = true;
+            switch (MainClient.createDocument(filename, section))
             {
-                case "OK":
+                case ERR_FILE_ALREADY_EXISTS:
                 {
-                    section = (Integer) nsection.getValue();
-                    filename = name.getText();
-                    boolean goback = true;
-
-                    if(filename.equals(""))
-                    {
-                        JOptionPane.showMessageDialog(this,"Nome del file necessario!","WARNING",JOptionPane.WARNING_MESSAGE);
-                        break;
-                    }
-                    else
-                    {
-                        switch(MainClient.createDocument(filename, section))
-                        {
-                            case ERR_FILE_ALREADY_EXISTS:
-                            {
-                                JOptionPane.showMessageDialog(this,"File già esistente!","WARNING",JOptionPane.WARNING_MESSAGE);
-                                goback = false;
-                                break;
-                            }
-
-                            case OP_FAIL:
-                            {
-                                JOptionPane.showMessageDialog(this,"Errore generico nella gestione del file","ERROR",JOptionPane.ERROR_MESSAGE);
-                                goback = false;
-                                break;
-                            }
-
-                            case OP_OK:
-                        }
-                    }
-                    if(!goback)
-                        break;
+                    JOptionPane.showMessageDialog(this, "File già esistente!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                    goback = false;
+                    break;
                 }
 
-                case "ANNULLA":
+                case OP_FAIL:
                 {
-                    if(editingFilename == null || editingFilename.equals(""))
-                        Utils.showNextFrame(frameCode.TURING,this);
-                    else
-                        Utils.showNextFrame(frameCode.TURING_EDIT,this);
+                    JOptionPane.showMessageDialog(this, "Errore generico nella gestione del file", "ERROR", JOptionPane.ERROR_MESSAGE);
+                    break;
+                }
+
+                case OP_OK:
+                {
+                    JOptionPane.showMessageDialog(this, "File creato con successo", "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
                     break;
                 }
             }
+            if(goback)
+                Utils.showPreviousFrame(this);
         }
     }
+
+    public void actionPerformed(ActionEvent e)
+    {
+        String cmd = e.getActionCommand().toUpperCase();
+        if ("OK".equals(cmd))
+            create();
+        else if("ANNULLA".equals(cmd))
+            Utils.showPreviousFrame(this);
+
+    }
+
+    public void keyTyped(KeyEvent e) {}
+
+    public void keyPressed(KeyEvent e)
+    {
+        if(e.getKeyCode() == KeyEvent.VK_ENTER)
+            create();
+    }
+
+    public void keyReleased(KeyEvent e) {}
 }

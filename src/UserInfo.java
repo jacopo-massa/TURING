@@ -1,13 +1,12 @@
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class UserInfo
 {
     private String password;
     private int online;
     private ArrayList<String> files;
-    private ArrayList<Invitation> pendingInvitations;
+    private ArrayList<Message> pendingInvitations;
     private SocketChannel inviteSocketChannel;
     private String editingFilename;
     private int editingSection;
@@ -74,11 +73,11 @@ public class UserInfo
         this.editingSection = editingSection;
     }
 
-    public ArrayList<Invitation> getPendingInvitations() {
+    public ArrayList<Message> getPendingInvitations() {
         return pendingInvitations;
     }
 
-    public void addPendingInvite(Invitation invitation)
+    public void addPendingInvite(Message invitation)
     {
         pendingInvitations.add(invitation);
     }
