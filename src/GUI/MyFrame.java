@@ -11,7 +11,7 @@ public class MyFrame extends JFrame
 
     public MyFrame(MyFrame oldFrame, frameCode frame)
     {
-        super("TURING");
+        super("TURING " + ( (frame == frameCode.SERVER) ? "SERVER" : "CLIENT"));
         this.oldFrame = oldFrame;
         Container c = this.getContentPane();
 
@@ -32,6 +32,10 @@ public class MyFrame extends JFrame
 
             case INVITE:
                 p = new InvitationPanel();
+                break;
+
+            case SERVER:
+                p = new ServerPanel();
                 break;
 
             case LOGIN:

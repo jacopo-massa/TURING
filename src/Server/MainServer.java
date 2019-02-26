@@ -1,5 +1,6 @@
 package Server;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -17,7 +18,12 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import GUI.MyFrame;
+import GUI.ServerPanel;
+import GUI.frameCode;
 import Utils.*;
+
+import javax.swing.*;
 
 
 public class MainServer
@@ -44,7 +50,11 @@ public class MainServer
         //collezione dei file caricati dagli utenti su TURING
         ConcurrentHashMap<String, FileInfo> userFiles = new ConcurrentHashMap<>();
 
+        // finestra di log degli eventi all'interno del server
+        new MyFrame(null, frameCode.SERVER);
 
+        String log;
+        JTextPane pane = ServerPanel.logPane;
 
         /* Creazione del registry per poter fornire la funzione di "registrazione/deregistrazione" al servizio TURING" */
         try
@@ -57,7 +67,11 @@ public class MainServer
             r.rebind("TURING-SERVER",stub);
         }
         catch (RemoteException e)
-        { System.err.println("Communication error " + e.toString()); }
+        {
+            String msg = "Communication error";
+            Utils.appendToPane(pane,msg+"\n", Color.RED,true);
+            System.err.println(msg + " " + e.toString());
+        }
 
         /* -------------------------------------------- */
 
@@ -68,7 +82,8 @@ public class MainServer
         Runtime.getRuntime().addShutdownHook(
                 new Thread(() -> {
                     try { Utils.deleteDirectory(Utils.SERVER_FILES_PATH); }
-                    catch(IOException ioe) {System.err.println("Can't delete " + Utils.SERVER_FILES_PATH); }
+                    catch(IOException ioe)
+                    { System.err.println("Can't delete " + Utils.SERVER_FILES_PATH); }
                 }));
 
         /* Creazione del socket TCP per la notifica degli inviti */
@@ -91,12 +106,16 @@ public class MainServer
 
         ServerSocketChannel clientSSC;
         Selector selector;
+
         try
         {
             clientSSC = ServerSocketChannel.open();
             ServerSocket clientServerSocket = clientSSC.socket();
             clientServerSocket.bind(new InetSocketAddress(Utils.ADDRESS, Utils.CLIENT_PORT));
-            System.out.println("Server aperto su porta " + Utils.CLIENT_PORT);
+
+            log = "Server opened on port " + Utils.CLIENT_PORT;
+            Utils.appendToPane(pane,log+"\n",Color.BLUE,false);
+            System.out.println(log);
 
             clientSSC.configureBlocking(false);
             selector = Selector.open();
@@ -114,7 +133,9 @@ public class MainServer
             try { selector.select(); }
             catch (IOException ioe)
             {
-                System.err.println("Error on select " + ioe.toString() + ioe.getMessage());
+                log = "Error on select";
+                Utils.appendToPane(pane,log+"\n",Color.RED,true);
+                System.err.println(log + " " + ioe.toString() + ioe.getMessage());
                 ioe.printStackTrace();
                 break;
             }
@@ -136,7 +157,10 @@ public class MainServer
                         SocketChannel client = server.accept();
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
-                        System.out.println("Connessione dal client " + client.getLocalAddress() + " from " + client.getRemoteAddress());
+
+                        log = "New connection from " + client.getRemoteAddress();
+                        Utils.appendToPane(pane,log+"\n",Color.BLUE,false);
+                        System.out.println(log);
                     }
                     else if(key.isReadable()) //sto per leggere da una socket
                     {
@@ -152,8 +176,11 @@ public class MainServer
                         }
                         catch(ClassNotFoundException e)
                         {
-                            System.err.println("Error on reading Utils.Operation " + e.toString() + " " + e.getMessage());
+                            log = "Error on reading Operation";
+                            Utils.appendToPane(pane,log+"\n",Color.RED,true);
+                            System.err.println(log + " " + e.toString() + " " + e.getMessage());
                             e.printStackTrace();
+
                             //in caso di errore sovrascrivo il codice con OP_FAIL
                             answerCode = opCode.OP_FAIL;
                             key.attach(answerCode);
@@ -232,7 +259,9 @@ public class MainServer
                                     SocketChannel inviteSocket = inviteSSC.accept();
                                     userInfo.setInviteSocketChannel(inviteSocket);
 
-                                    System.out.println("Connessione per inviti " + inviteSocket.getLocalAddress() + " from " + inviteSocket.getRemoteAddress());
+                                    log = "New connection for invitation from " + inviteSocket.getRemoteAddress();
+                                    Utils.appendToPane(pane,log+"\n",Color.BLUE,false);
+                                    System.out.println(log);
 
                                     /* creo la directory (solo se non esiste già)
                                        che conterrà tutti i file creati da questo utente */
@@ -250,9 +279,6 @@ public class MainServer
                             {
                                 if(registeredUsers.setStatus(usr,psw,0))
                                 {
-                                    //mando la risposta al client (con OP_OK)
-                                    //Utils.sendBytes(clientSocketChannel,answerCode.toString().getBytes());
-
                                     UserInfo userInfo = registeredUsers.getUser(usr);
 
                                     String editingFilename = userInfo.getEditingFilename();
@@ -271,7 +297,6 @@ public class MainServer
                                     //chiudo le due socket del client
                                     key.cancel();
                                     clientSocketChannel.close();
-                                    
                                     userInfo.getInviteSocketChannel().close();
 
                                     continue;
@@ -448,17 +473,13 @@ public class MainServer
                             {
                                 String filename = op_in.getFilename();
                                 String owner = op_in.getOwner();
-                                String collectionFilename = filename + "_" + owner;
+                                String collectionFilename = filename + "_" + usr;
 
 
-                                UserInfo userInfo = registeredUsers.getUser(usr);
+                                UserInfo userInfo = registeredUsers.getUser(owner);
 
                                 if(userInfo == null) //utente inesistente
                                     answerCode = opCode.ERR_USER_UNKNOWN;
-                                /*else if(userFiles.get(collectionFilename).getOwner().equals(collaborator))
-                                {
-                                    answerCode = Utils.opCode.ERR_OWNER_INVITED;
-                                }*/
                                 else if(userInfo.canEdit(collectionFilename)) //controllo che l'utente non sia già stato invitato
                                 {
                                     answerCode = opCode.ERR_USER_ALREADY_INVITED;
@@ -470,14 +491,14 @@ public class MainServer
                                     //utente non online, aggiungo l'invito alla sua lista di inviti pendenti
                                     if(!userInfo.isOnline())
                                     {
-                                        Message invitation = new Message(owner, filename, new Date());
+                                        Message invitation = new Message(usr, filename, new Date());
                                         userInfo.addPendingInvite(invitation);
                                     }
 
                                     else
                                     {
                                         //mando in tempo reale l'invito all'utente
-                                        Message invitation = new Message(owner, filename, new Date());
+                                        Message invitation = new Message(usr, filename, new Date());
                                         Utils.sendObject(userInfo.getInviteSocketChannel(), invitation);
                                     }
 
@@ -492,13 +513,15 @@ public class MainServer
 
                         key.attach(answerCode);
                         key.interestOps(SelectionKey.OP_WRITE);
+
+                        Utils.printLog(usr,op_in.getCode(),answerCode);
                     }
                     else if (key.isWritable()) //sto per scrivere su una socket
                     {
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
-                        opCode code = (opCode) key.attachment();
+                        opCode answerCode = (opCode) key.attachment();
 
-                        Utils.sendBytes(clientSocketChannel,code.toString().getBytes());
+                        Utils.sendBytes(clientSocketChannel,answerCode.toString().getBytes());
                         key.interestOps(SelectionKey.OP_READ);
                     }
                 }

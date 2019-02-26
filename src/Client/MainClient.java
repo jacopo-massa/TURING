@@ -53,7 +53,6 @@ public class MainClient
                     try
                     { Utils.deleteDirectory(Utils.CLIENT_FILES_PATH + username); }
                     catch(IOException ioe) {System.err.println("Can't delete " + Utils.CLIENT_FILES_PATH + username); }
-
                     logoutUser();
                 }));
     }
@@ -158,8 +157,7 @@ public class MainClient
 
         try
         {
-            int REGISTRATION_PORT = 5000;
-            Registry registry = LocateRegistry.getRegistry(REGISTRATION_PORT);
+            Registry registry = LocateRegistry.getRegistry(Utils.REGISTRATION_PORT);
             remote = registry.lookup("TURING-SERVER");
             registration = (IntRegistration) remote;
         }
@@ -468,11 +466,11 @@ public class MainClient
      */
     public static opCode invite(String filename, String collaborator)
     {
-        Operation request = new Operation(collaborator);
+        Operation request = new Operation(username);
         request.setPassword(password);
         request.setCode(opCode.INVITE);
         request.setFilename(filename);
-        request.setOwner(username);
+        request.setOwner(collaborator);
 
         sendReq(request);
         return getAnswer();

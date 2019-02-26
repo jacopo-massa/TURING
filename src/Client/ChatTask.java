@@ -142,7 +142,7 @@ public class ChatTask implements Runnable
      */
     private void printChatMessage(Message message)
     {
-        Utils.printTimeStamp(message.getDate());
+        Utils.printTimeStamp(TuringPanel.receiveArea, message.getDate());
 
         String textToAppend = message.getSender() + ": ";
 

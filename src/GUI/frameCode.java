@@ -7,5 +7,6 @@ public enum frameCode
     CREATE,
     SHOW,
     INVITE,
-    EDIT
+    EDIT,
+    SERVER
 }

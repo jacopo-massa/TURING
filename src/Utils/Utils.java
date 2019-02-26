@@ -1,6 +1,7 @@
 package Utils;
 
 import GUI.MyFrame;
+import GUI.ServerPanel;
 import GUI.TuringPanel;
 import GUI.frameCode;
 
@@ -28,10 +29,10 @@ public class Utils
     public static String SERVER_FILES_PATH = "./turing_files/";
 
     public static String ADDRESS = "127.0.0.1";
-    public static int REGISTRATION_PORT = 5000;
-    public static int CLIENT_PORT = 5001;
-    public static int INVITE_PORT = 5002;
-    public static int MULTICAST_PORT = 5003;
+    public static int REGISTRATION_PORT = 5001;
+    public static int CLIENT_PORT = 5002;
+    public static int INVITE_PORT = 5003;
+    public static int MULTICAST_PORT = 5004;
 
     /* utility per la gestione di ricezione/invio oggetti e bytes su socket */
 
@@ -291,18 +292,18 @@ public class Utils
         catch (BadLocationException e){e.printStackTrace();}
     }
 
-    public static void printTimeStamp(Date date)
+    public static void printTimeStamp(JTextPane pane, Date date)
     {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
         String textToAppend = "[" + formatter.format(date) + "] - ";
 
-        Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLACK,false);
+        Utils.appendToPane(pane, textToAppend, Color.BLACK,false);
     }
 
     public static void printInvite(String owner, String filename, Date date)
     {
-        printTimeStamp(date);
+        printTimeStamp(TuringPanel.receiveArea, date);
 
         String textToAppend = "invite from ";
         Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLUE,false);
@@ -313,6 +314,19 @@ public class Utils
         Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLUE,false);
 
         Utils.appendToPane(TuringPanel.receiveArea, filename + "\n", Color.RED,true);
+    }
+
+    public static void printLog(String msg, opCode requestCode, opCode answerCode)
+    {
+        //printTimeStamp(ServerPanel.logPane, new Date());
+
+        Utils.appendToPane(ServerPanel.logPane, msg, Color.RED,true);
+        Utils.appendToPane(ServerPanel.logPane, "  REQUEST: ", Color.BLACK,false);
+        Utils.appendToPane(ServerPanel.logPane, String.valueOf(requestCode), Color.BLUE,true);
+        Utils.appendToPane(ServerPanel.logPane, "  RESULT: ", Color.BLACK,false);
+
+        Color c = (answerCode == opCode.OP_FAIL) ? Color.RED : Color.GREEN;
+        Utils.appendToPane(ServerPanel.logPane, answerCode + "\n", c,true);
     }
 
     public static void sendChatMessage(String sender, String msg, String address, Component component)
