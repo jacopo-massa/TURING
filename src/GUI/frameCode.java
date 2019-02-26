@@ -1,3 +1,5 @@
+package GUI;
+
 public enum frameCode
 {
     LOGIN,
@@ -5,5 +7,5 @@ public enum frameCode
     CREATE,
     SHOW,
     INVITE,
-    EDIT;
+    EDIT
 }

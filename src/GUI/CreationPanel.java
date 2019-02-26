@@ -1,3 +1,8 @@
+package GUI;
+
+import Utils.Utils;
+import Client.MainClient;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -97,6 +102,8 @@ public class CreationPanel extends JPanel implements ActionListener, KeyListener
     {
         if(e.getKeyCode() == KeyEvent.VK_ENTER)
             create();
+        else if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            Utils.showPreviousFrame(this);
     }
 
     public void keyReleased(KeyEvent e) {}

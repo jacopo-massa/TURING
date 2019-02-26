@@ -1,28 +1,30 @@
+package GUI;
+
+import Client.MainClient;
+
+import Utils.Utils;
+import Utils.opCode;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 
-public class ManagePanel extends JPanel implements ActionListener, ItemListener {
+public class ManagePanel extends JPanel implements ActionListener, ItemListener, KeyListener {
 
     private JComboBox name;
     private JSpinner nsection;
     private frameCode operation;
-    private ArrayList<String> clientFiles;
 
-    private String[] options;
     private String[] titles;
     private String[] owners;
     private int[] max_sections;
 
     private String usr;
 
-    public ManagePanel(frameCode operation)
+    ManagePanel(frameCode operation)
     {
-        this.clientFiles = TuringPanel.clientFiles;
+        ArrayList<String> clientFiles = TuringPanel.clientFiles;
         this.operation = operation;
         this.usr = MainClient.username;
 
@@ -44,7 +46,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
         centerPanel.setLayout(new GridLayout(2,2));
 
         int size = clientFiles.size();
-        options = new String[size];
+        String[] options = new String[size];
         titles = new String[size];
         owners = new String[size];
         max_sections = new int[size];
@@ -211,4 +213,14 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener 
             nsection.setModel(model);
         }
     }
+
+    public void keyTyped(KeyEvent e) {}
+
+    public void keyPressed(KeyEvent e)
+    {
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            Utils.showPreviousFrame(this);
+    }
+
+    public void keyReleased(KeyEvent e) {}
 }

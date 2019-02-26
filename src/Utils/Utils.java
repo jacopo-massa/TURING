@@ -1,3 +1,9 @@
+package Utils;
+
+import GUI.MyFrame;
+import GUI.TuringPanel;
+import GUI.frameCode;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -15,17 +21,17 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 
-class Utils
+public class Utils
 {
 
-    static String CLIENT_FILES_PATH = "./client_files/";
-    static String SERVER_FILES_PATH = "./turing_files/";
+    public static String CLIENT_FILES_PATH = "./client_files/";
+    public static String SERVER_FILES_PATH = "./turing_files/";
 
-    static String ADDRESS = "127.0.0.1";
-    static int REGISTRATION_PORT = 5000;
-    static int CLIENT_PORT = 5001;
-    static int INVITE_PORT = 5002;
-    static int MULTICAST_PORT = 5003;
+    public static String ADDRESS = "127.0.0.1";
+    public static int REGISTRATION_PORT = 5000;
+    public static int CLIENT_PORT = 5001;
+    public static int INVITE_PORT = 5002;
+    public static int MULTICAST_PORT = 5003;
 
     /* utility per la gestione di ricezione/invio oggetti e bytes su socket */
 
@@ -56,13 +62,13 @@ class Utils
         return ByteBuffer.wrap(baos.toByteArray());
     }
 
-    static Serializable deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException
+    public static Serializable deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException
     {
         ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
         return (Serializable) ois.readObject();
     }
 
-    static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
+    public static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
     {
         ByteBuffer wrap = serializeObject(serializable);
 
@@ -72,7 +78,7 @@ class Utils
         writeN(socket,wrap,length);
     }
 
-    static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
+    public static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
     {
         ByteBuffer dataByteBuffer;
 
@@ -118,7 +124,7 @@ class Utils
         return length;
     }
 
-    static void sendBytes(SocketChannel socket, byte[] bytes) throws IOException
+    public static void sendBytes(SocketChannel socket, byte[] bytes) throws IOException
     {
         sendLength(socket,bytes.length);
 
@@ -130,7 +136,7 @@ class Utils
         bytesBuffer.clear();
     }
 
-    static byte[] recvBytes(SocketChannel socket) throws IOException
+    public static byte[] recvBytes(SocketChannel socket) throws IOException
     {
         //leggo la dimensione del code che sto per ricevere
         ByteBuffer bytesBuffer;
@@ -150,7 +156,7 @@ class Utils
 
     }
 
-    static void transferToSection(SocketChannel socket, String filepath) throws IOException
+    public static void transferToSection(SocketChannel socket, String filepath) throws IOException
     {
 
         File f;
@@ -171,7 +177,7 @@ class Utils
             throw new IOException();
         }
 
-        //elimino "Utils.*_FILES_PATH/<username>/" dal filepath
+        //elimino "Utils.Utils.*_FILES_PATH/<username>/" dal filepath
         String pathWithoutSource = filepath.split("/",3)[2];
 
         byte[] pathBytes = pathWithoutSource.getBytes();
@@ -195,7 +201,7 @@ class Utils
         fis.close();
     }
 
-    static void transferFromSection(SocketChannel socket, String username, boolean isServer) throws IOException
+    public static void transferFromSection(SocketChannel socket, String username, boolean isServer) throws IOException
     {
         //leggo il path
         byte[] pathBytes = recvBytes(socket);
@@ -229,7 +235,14 @@ class Utils
 
     /* --------------------------------- */
 
-    static void deleteDirectory(String path) throws IOException
+    public static String getPath(String username, String filename, int section, boolean isServer)
+    {
+        return ((isServer) ? SERVER_FILES_PATH : CLIENT_FILES_PATH) +
+                username + "/" + filename +
+                ((section == 0) ? "" : ("/" + filename + section + ".txt"));
+    }
+
+    public static void deleteDirectory(String path) throws IOException
     {
         Files.walk(Paths.get(path))
                 .sorted(Comparator.reverseOrder())
@@ -237,7 +250,7 @@ class Utils
                 .forEach(File::delete);
     }
 
-    static void showPreviousFrame(Component c)
+    public static void showPreviousFrame(Component c)
     {
         //ottengo il frame corrente
         MyFrame currentFrame = (MyFrame) SwingUtilities.getWindowAncestor(c);
@@ -249,7 +262,7 @@ class Utils
         currentFrame.dispose();
     }
 
-    static void showNextFrame(frameCode frame, Component c)
+    public static void showNextFrame(frameCode frame, Component c)
     {
         //ottengo il frame corrente
         MyFrame oldFrame = (MyFrame) SwingUtilities.getWindowAncestor(c);
@@ -258,7 +271,7 @@ class Utils
         new MyFrame(oldFrame, frame);
     }
 
-    static synchronized void appendToPane(JTextPane tp, String msg, Color c, boolean bold)
+    public static synchronized void appendToPane(JTextPane tp, String msg, Color c, boolean bold)
     {
         StyleContext sc = StyleContext.getDefaultStyleContext();
         AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
@@ -278,7 +291,7 @@ class Utils
         catch (BadLocationException e){e.printStackTrace();}
     }
 
-    static void printTimeStamp(Date date)
+    public static void printTimeStamp(Date date)
     {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
@@ -287,7 +300,7 @@ class Utils
         Utils.appendToPane(TuringPanel.receiveArea, textToAppend, Color.BLACK,false);
     }
 
-    static void printInvite(String owner, String filename, Date date)
+    public static void printInvite(String owner, String filename, Date date)
     {
         printTimeStamp(date);
 
@@ -302,16 +315,14 @@ class Utils
         Utils.appendToPane(TuringPanel.receiveArea, filename + "\n", Color.RED,true);
     }
 
-    static void sendChatMessage(String sender, String msg, String address, Component component)
+    public static void sendChatMessage(String sender, String msg, String address, Component component)
     {
         if(address == null)
         {
             if(component != null)
                 JOptionPane.showMessageDialog(component,"Non stai editando nessun file!","WARNING",JOptionPane.WARNING_MESSAGE);
         }
-        else if(msg.trim().isEmpty())
-            return;
-        else
+        else if (!msg.trim().isEmpty())
         {
             DatagramSocket socket;
             InetAddress group;
@@ -345,7 +356,7 @@ class Utils
             }
             catch(IOException e)
             {
-                System.err.println("Can't serialize chat Message");
+                System.err.println("Can't serialize chat Utils.Message");
                 if(component != null)
                     JOptionPane.showMessageDialog(component,"Errore nell'invio del messaggio","ERRORE",JOptionPane.ERROR_MESSAGE);
                 return;

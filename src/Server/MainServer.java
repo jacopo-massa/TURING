@@ -1,3 +1,5 @@
+package Server;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,6 +17,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import Utils.*;
+
 
 public class MainServer
 {
@@ -26,17 +30,10 @@ public class MainServer
         String address = "239";
 
         for (int i = 1; i <= 3; i++)
-        {
             address += "." + ( (int) (Math.random() * 256));
-        }
 
         return address;
 
-    }
-
-    private static String getPath(String username, String filename, int section)
-    {
-        return Utils.SERVER_FILES_PATH + username + "/" + filename + ((section == 0) ? "" : ("/" + filename + section + ".txt"));
     }
 
     public static void main(String[] args)
@@ -155,7 +152,7 @@ public class MainServer
                         }
                         catch(ClassNotFoundException e)
                         {
-                            System.err.println("Error on reading Operation " + e.toString() + " " + e.getMessage());
+                            System.err.println("Error on reading Utils.Operation " + e.toString() + " " + e.getMessage());
                             e.printStackTrace();
                             //in caso di errore sovrascrivo il codice con OP_FAIL
                             answerCode = opCode.OP_FAIL;
@@ -296,7 +293,7 @@ public class MainServer
                                 else //se non esiste, aggiungo il file alla collezione gestita dal server
                                 {
                                     //creo la directory che conterrà le sezioni del file 'filename'
-                                    Files.createDirectories(Paths.get(getPath(usr,filename,0)));
+                                    Files.createDirectories(Paths.get(Utils.getPath(usr,filename,0,true)));
 
 
                                     boolean err = false;
@@ -304,7 +301,7 @@ public class MainServer
                                     //creo le sezioni del file
                                     for (int i = 1; i <= nsections; i++)
                                     {
-                                        File sec = new File(getPath(usr,filename,i));
+                                        File sec = new File(Utils.getPath(usr,filename,i,true));
                                         if(!sec.createNewFile())
                                         {
                                             err = true;
@@ -315,7 +312,7 @@ public class MainServer
                                     if(!err)
                                     {
                                         //genero un indirizzo di multicast da assegnare al file che sto per creare
-                                        String address = null;
+                                        String address;
                                         do
                                         { address = generateMulticastAddress(); }
                                         while(usedAddresses.contains(address));
@@ -368,7 +365,7 @@ public class MainServer
                                                 userInfo.setEditingSection(section);
 
                                                 //mando all'utente l'esito positivo della richiesta di EDIT
-                                                Utils.sendBytes(clientSocketChannel,opCode.OP_OK.toString().getBytes());
+                                                Utils.sendBytes(clientSocketChannel, opCode.OP_OK.toString().getBytes());
 
                                                 //mando all'utente l'indirizzo di multicast associato al file
                                                 Utils.sendBytes(clientSocketChannel,fileInfo.getAddress().getBytes());
@@ -398,7 +395,7 @@ public class MainServer
 
                                 try
                                 {
-                                    Utils.transferToSection(clientSocketChannel,getPath(owner,filename,section).replaceFirst("./",""));
+                                    Utils.transferToSection(clientSocketChannel,Utils.getPath(owner,filename,section,true).replaceFirst("./",""));
                                     if(userFiles.get(collectionFilename).isLocked(section-1))
                                         answerCode = opCode.SECTION_EDITING;
                                     else
@@ -460,7 +457,7 @@ public class MainServer
                                     answerCode = opCode.ERR_USER_UNKNOWN;
                                 /*else if(userFiles.get(collectionFilename).getOwner().equals(collaborator))
                                 {
-                                    answerCode = opCode.ERR_OWNER_INVITED;
+                                    answerCode = Utils.opCode.ERR_OWNER_INVITED;
                                 }*/
                                 else if(userInfo.canEdit(collectionFilename)) //controllo che l'utente non sia già stato invitato
                                 {

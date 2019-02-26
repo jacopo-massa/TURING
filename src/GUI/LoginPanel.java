@@ -1,16 +1,19 @@
+package GUI;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+
+import Utils.Utils;
+
+import Client.MainClient;
 
 public class LoginPanel extends JPanel implements ActionListener
 {
     private JTextField username;
     private JPasswordField password;
 
-    static String usr;
-    static String psw;
-
-    public LoginPanel()
+    LoginPanel()
     {
         this.setLayout(new BorderLayout());
         JPanel northPanel = new JPanel();
@@ -48,8 +51,8 @@ public class LoginPanel extends JPanel implements ActionListener
 
         if(e.getSource() instanceof JButton)
         {
-            usr = this.username.getText();
-            psw = new String(this.password.getPassword());
+            String usr = this.username.getText();
+            String psw = new String(this.password.getPassword());
             if(usr.equals("") || psw.equals(""))
             {
                 JOptionPane.showMessageDialog(this,"Inserisci username/password!","ERRORE",JOptionPane.ERROR_MESSAGE);

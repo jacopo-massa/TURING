@@ -1,3 +1,10 @@
+package GUI;
+
+import Client.MainClient;
+
+import Utils.*;
+
+
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
@@ -12,22 +19,21 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
 {
     private String usr;
     private String psw;
-    private ArrayList<Message> pendingInvitations;
 
     static JButton editButton;
     static JButton endEditButton;
-    static JTextPane receiveArea;
-    static JTextField sendArea;
+    private static JTextField sendArea;
+    public static JTextPane receiveArea;
 
     static ArrayList<String> clientFiles;
     static String editingFilename;
-    static String editingFileAddress;
+    public static String editingFileAddress;
 
     TuringPanel()
     {
         this.usr = MainClient.username;
         this.psw = MainClient.password;
-        this.pendingInvitations = MainClient.pendingInvitations;
+        ArrayList<Message> pendingInvitations = MainClient.pendingInvitations;
 
         this.setLayout(new BorderLayout());
 

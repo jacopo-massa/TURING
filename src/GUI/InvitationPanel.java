@@ -1,3 +1,8 @@
+package GUI;
+
+import Client.MainClient;
+import Utils.Utils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,28 +17,23 @@ public class InvitationPanel extends JPanel implements ActionListener, KeyListen
     private JComboBox filename;
     private JTextField collaborator;
 
-    private ArrayList<String> clientFiles;
-
     private String[] titles;
-    private String[] owners;
 
     private String usr;
 
-    public InvitationPanel()
+    InvitationPanel()
     {
         this.usr = MainClient.username;
-        this.clientFiles = TuringPanel.clientFiles;
+        ArrayList<String> clientFiles = TuringPanel.clientFiles;
 
         int size = clientFiles.size();
         titles = new String[size];
-        owners = new String[size];
 
         for (int i = 0; i < size; i++)
         {
             String[] o = clientFiles.get(i).split("_",3);
 
             titles[i] = o[0];
-            owners[i] = o[1];
         }
 
         this.setLayout(new BorderLayout());
@@ -137,12 +137,13 @@ public class InvitationPanel extends JPanel implements ActionListener, KeyListen
     }
 
     public void keyTyped(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {}
 
     public void keyPressed(KeyEvent e)
     {
         if(e.getKeyCode() == KeyEvent.VK_ENTER)
             invite();
+        else if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            Utils.showPreviousFrame(this);
     }
-
-    public void keyReleased(KeyEvent e) {}
 }

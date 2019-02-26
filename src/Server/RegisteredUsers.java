@@ -1,16 +1,19 @@
-import java.rmi.RemoteException;
+package Server;
+
+import Utils.IntRegistration;
+
 import java.rmi.server.RemoteServer;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RegisteredUsers extends RemoteServer implements IntRegistration
 {
     private ConcurrentHashMap<String, UserInfo> users;
-    public RegisteredUsers()
+    RegisteredUsers()
     {
         this.users = new ConcurrentHashMap<>();
     }
 
-    public boolean registerUser(String username, String password) throws RemoteException, NullPointerException
+    public boolean registerUser(String username, String password) throws NullPointerException
     {
         if(username == null || password == null)
             throw new NullPointerException();
@@ -20,15 +23,6 @@ public class RegisteredUsers extends RemoteServer implements IntRegistration
 
         UserInfo u = new UserInfo(password);
         users.putIfAbsent(username, u);
-        return true;
-    }
-
-    public boolean unregisterUser(String username, String password) throws RemoteException, NullPointerException
-    {
-        if(!checkData(username,password))
-            return false;
-
-        users.remove(username);
         return true;
     }
 

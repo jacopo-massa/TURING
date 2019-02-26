@@ -1,14 +1,15 @@
+package GUI;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-class MyFrame extends JFrame
+public class MyFrame extends JFrame
 {
     private MyFrame oldFrame;
-    private Point location;
     private JPanel p;
 
-    MyFrame(MyFrame oldFrame, frameCode frame)
+    public MyFrame(MyFrame oldFrame, frameCode frame)
     {
         super("TURING");
         this.oldFrame = oldFrame;
@@ -46,6 +47,7 @@ class MyFrame extends JFrame
         this.pack();
 
         //imposto posizione della finestra
+        Point location;
         if(oldFrame != null && oldFrame.isVisible())
         {
             location = oldFrame.getLocationOnScreen();

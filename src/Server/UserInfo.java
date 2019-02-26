@@ -1,3 +1,7 @@
+package Server;
+
+import Utils.Message;
+
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 
@@ -11,7 +15,7 @@ public class UserInfo
     private String editingFilename;
     private int editingSection;
 
-    public UserInfo(String password)
+    UserInfo(String password)
     {
         this.password = password;
         this.files = new ArrayList<>();
@@ -20,78 +24,73 @@ public class UserInfo
         this.editingSection = 0;
     }
 
-    public ArrayList<String> getFiles() {
+    ArrayList<String> getFiles() {
         return files;
     }
 
-    public boolean canEdit(String filename)
+    boolean canEdit(String filename)
     {
         return files.contains(filename);
     }
 
-    public void addFile(String filename)
+    void addFile(String filename)
     {
         if(!files.contains(filename))
             files.add(filename);
     }
 
-    public boolean removeFile(String filename)
-    {
-        return files.remove(filename);
-    }
-
-    public String getPassword() {
+    String getPassword() {
         return password;
     }
 
-    public boolean isOnline()
+    boolean isOnline()
     {
         return (online == 1);
     }
 
-    public void setOnline() {
+    void setOnline() {
         this.online = 1;
     }
 
-    public void setOffline() {
+    void setOffline() {
         this.online = 0;
     }
 
-    public String getEditingFilename() {
+    String getEditingFilename() {
         return editingFilename;
     }
 
-    public void setEditingFilename(String editingFilename) {
+    void setEditingFilename(String editingFilename) {
         this.editingFilename = editingFilename;
     }
 
-    public int getEditingSection() {
+    int getEditingSection() {
         return editingSection;
     }
 
-    public void setEditingSection(int editingSection) {
+    void setEditingSection(int editingSection) {
         this.editingSection = editingSection;
     }
 
-    public ArrayList<Message> getPendingInvitations() {
+    ArrayList<Message> getPendingInvitations() {
         return pendingInvitations;
     }
 
-    public void addPendingInvite(Message invitation)
+    void addPendingInvite(Message invitation)
     {
         pendingInvitations.add(invitation);
     }
 
-    public void clearPendingInvites()
+    void clearPendingInvites()
     {
         pendingInvitations.clear();
     }
 
-    public SocketChannel getInviteSocketChannel() {
+    SocketChannel getInviteSocketChannel() {
         return inviteSocketChannel;
     }
 
-    public void setInviteSocketChannel(SocketChannel inviteSocketChannel) {
+    void setInviteSocketChannel(SocketChannel inviteSocketChannel) {
         this.inviteSocketChannel = inviteSocketChannel;
     }
 }
