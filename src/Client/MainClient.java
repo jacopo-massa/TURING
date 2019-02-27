@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -449,6 +451,9 @@ public class MainClient
             String filepath = Utils.getPath(username,name,section,false).replaceFirst("./","");
             Utils.transferToSection(clientSocketChannel,filepath);
             answerCode = getAnswer();
+
+            // elimino il file sul client dopo aver mandato il suo aggiornamento al server
+            Files.deleteIfExists(Paths.get(filepath));
         }
         catch(IOException ioe)
         { answerCode = opCode.OP_FAIL; }

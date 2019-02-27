@@ -15,6 +15,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -212,11 +213,13 @@ public class Utils
 
         Files.createDirectories(Paths.get(filepath.substring(0,filepath.lastIndexOf("/"))));
 
-        File f = new File(filepath);
+        //File f = new File(filepath);
 
-        f.createNewFile(); //se il file già esiste lo sovrascrivo
+        try{ Files.createFile(Paths.get(filepath)); }
+        catch(FileAlreadyExistsException f){}
+        //f.createNewFile(); //se il file già esiste lo sovrascrivo
 
-        FileOutputStream fos = new FileOutputStream(f);
+        FileOutputStream fos = new FileOutputStream(filepath);
         FileChannel fc = fos.getChannel();
 
         //leggo lunghezza del file

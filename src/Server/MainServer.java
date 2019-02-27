@@ -326,8 +326,12 @@ public class MainServer
                                     //creo le sezioni del file
                                     for (int i = 1; i <= nsections; i++)
                                     {
-                                        File sec = new File(Utils.getPath(usr,filename,i,true));
-                                        if(!sec.createNewFile())
+                                        try
+                                        {
+                                            Files.createFile(Paths.get(Utils.getPath(usr,filename,i,true)));
+                                        }
+                                        //if(!sec.createNewFile())
+                                        catch(IOException ioe)
                                         {
                                             err = true;
                                             break;
@@ -462,6 +466,7 @@ public class MainServer
                                 }
                                 catch(IOException ioe)
                                 {
+                                    System.err.println("Error downloading section " + ioe.toString());
                                     answerCode = opCode.OP_FAIL;
                                     break;
                                 }
