@@ -1,9 +1,10 @@
 package GUI;
 
 import Client.MainClient;
-
-import Utils.*;
-
+import Utils.Message;
+import Utils.Operation;
+import Utils.Utils;
+import Utils.opCode;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
@@ -136,12 +137,15 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                 case "SHOW":
                 case "INVITE":
                 {
-                    //richiedo al server la lista di file gestibili
+                    // richiedo al server la lista di documenti gestibili
 
                     Operation request = new Operation(usr);
                     request.setPassword(psw);
                     request.setCode(opCode.FILE_LIST);
 
+                    /* se voglio effettuare un invito, mi assicuro di ricevere solo i documenti
+                       di cui sono proprietario, impostanto owner = username, come si aspetta il server
+                      */
                     if(cmd.equals("INVITE"))
                         request.setOwner(usr);
                     MainClient.sendReq(request);

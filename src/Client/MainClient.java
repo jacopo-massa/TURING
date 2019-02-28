@@ -3,7 +3,6 @@ package Client;
 import GUI.MyFrame;
 import GUI.TuringPanel;
 import GUI.frameCode;
-
 import Utils.*;
 
 import java.io.IOException;
@@ -40,7 +39,9 @@ public class MainClient
     // lista di inviti pendenti, inizializzata al momento del login
     public static ArrayList<Message> pendingInvitations;
 
-
+    /**
+     * Metodo main del client
+     */
     public static void main(String[] args)
     {
         //creo il frame di login
@@ -183,10 +184,10 @@ public class MainClient
             else
                 return opCode.ERR_USER_ALREADY_LOGGED;
         }
-        catch(RemoteException re)
+        catch(RemoteException | NullPointerException e)
         {
-            System.err.println("Error in invoking method \"registerUser\" ");
-            re.printStackTrace();
+            System.err.println("Error in invoking method \"registerUser\" " + e.toString());
+            e.printStackTrace();
             return opCode.OP_FAIL;
         }
     }

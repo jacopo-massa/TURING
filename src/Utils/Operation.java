@@ -2,14 +2,18 @@ package Utils;
 
 import java.io.Serializable;
 
+/**
+ * Operation rappresenta la richiesta che il client manda al server,
+ * contenente il codice della richiesta da effettuare e altri parametri utili.
+ */
 public class Operation implements Serializable
 {
-    private opCode code;
-    private String username;
-    private String password;
-    private String filename;
-    private String owner;
-    private int section;
+    private opCode code;        // codice della richiesta da effettuare
+    private String username;    // username dell'utente che effettua la richiesta
+    private String password;    // password dell'utente che effettua la richiesta
+    private String filename;    // nome del file che si vuole editare/visualizzare o per cui si richiede una collaborazione
+    private String owner;       // owner del file 'filename'
+    private int section;        // numero di sezione del file 'filename'
 
     public Operation(String username)
     {

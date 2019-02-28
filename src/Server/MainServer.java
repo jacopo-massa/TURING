@@ -1,7 +1,12 @@
 package Server;
 
+import GUI.MyFrame;
+import GUI.ServerPanel;
+import GUI.frameCode;
+import Utils.*;
+
+import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -18,19 +23,14 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import GUI.MyFrame;
-import GUI.ServerPanel;
-import GUI.frameCode;
-import Utils.*;
-
-import javax.swing.*;
-
 
 public class MainServer
 {
-    //collezione contenente gli indirizzi multicast già assegnati
-    static Set<String> usedAddresses = new HashSet<>();
-
+    /**
+     * Funzione per generare un indirizzo IP multicast (il primo ottetto è fissato a 239
+     *
+     * @return Stringa che rappresenta indirizzo IP multicast nel formato deciame xxx.xxx.xxx.xxx
+     */
     private static String generateMulticastAddress()
     {
         String address = "239";
@@ -42,21 +42,32 @@ public class MainServer
 
     }
 
+    // collezione contenente gli indirizzi multicast già assegnati
+    static Set<String> usedAddresses = new HashSet<>();
+
+    /**
+     * Metodo main del server
+     */
     public static void main(String[] args)
     {
-        //collezione degli utenti registrati a TURING
+        // collezione degli utenti registrati a TURING
         RegisteredUsers registeredUsers = new RegisteredUsers();
 
-        //collezione dei file caricati dagli utenti su TURING
+        /* collezione dei file caricati dagli utenti su TURING, nel formato
+           < filename_owner , info del documento >
+         */
         ConcurrentHashMap<String, FileInfo> userFiles = new ConcurrentHashMap<>();
 
         // finestra di log degli eventi all'interno del server
         new MyFrame(null, frameCode.SERVER);
 
+        // Stringa contenente il messaggio di log da visualizzare nella finestra degli eventi.
         String log;
+
+        // riferimento all'area di testo della finestra di log
         JTextPane pane = ServerPanel.logPane;
 
-        /* Creazione del registry per poter fornire la funzione di "registrazione/deregistrazione" al servizio TURING" */
+        /* Creazione del registry per poter fornire la funzione di registrazione al servizio TURING" */
         try
         {
             IntRegistration stub = (IntRegistration) UnicastRemoteObject.exportObject(registeredUsers,0);
@@ -75,8 +86,8 @@ public class MainServer
 
         /* -------------------------------------------- */
 
-        /* Creo una funzione di cleanup, che al termine dell'esecuzione del server
-           elimina la directory contenente tutti i file degli utenti.
+        /* Creo una funzione di cleanup, che al termine dell'esecuzione del server (anche accidentale)
+        elimina la directory contenente tutti i file degli utenti.
          */
 
         Runtime.getRuntime().addShutdownHook(
@@ -102,7 +113,8 @@ public class MainServer
             return;
         }
 
-        /* Creazione del socket TCP per tutte le altre richieste dei client */
+        /* Creazione del socket TCP per la ricezione delle richieste dei client
+        *  e invio degli esiti di tali richieste */
 
         ServerSocketChannel clientSSC;
         Selector selector;
@@ -117,6 +129,7 @@ public class MainServer
             Utils.appendToPane(pane,log+"\n",Color.BLUE,false);
             System.out.println(log);
 
+            // registro il socket TCP al selettore, come socket su cui accettare richieste
             clientSSC.configureBlocking(false);
             selector = Selector.open();
             clientSSC.register(selector, SelectionKey.OP_ACCEPT);
@@ -127,6 +140,7 @@ public class MainServer
             ioe.printStackTrace();
             return;
         }
+
 
         while (true)
         {
@@ -147,27 +161,28 @@ public class MainServer
             {
                 SelectionKey key = iterator.next();
 
-                // rimuove la chiave dal Selected Set, ma non dal registered Set
                 try
                 {
-                    //sto accettando una nuova connessione
+                    // sto accettando una nuova connessione
                     if(key.isAcceptable())
                     {
                         ServerSocketChannel server = (ServerSocketChannel) key.channel();
                         SocketChannel client = server.accept();
                         client.configureBlocking(false);
+                        // registro la connessione in ingresso come socket da cui leggere una richiesta
                         client.register(selector, SelectionKey.OP_READ);
 
                         log = "New connection from " + client.getRemoteAddress();
                         Utils.appendToPane(pane,log+"\n",Color.BLUE,false);
                         System.out.println(log);
                     }
-                    else if(key.isReadable()) //sto per leggere da una socket
+                    else if(key.isReadable()) // sto per leggere da una socket
                     {
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
                         Operation op_in;
                         opCode answerCode = opCode.OP_FAIL;
 
+                        // leggo la richiesta del client
                         try
                         {
                             op_in = (Operation) Utils.recvObject(clientSocketChannel);
@@ -181,13 +196,13 @@ public class MainServer
                             System.err.println(log + " " + e.toString() + " " + e.getMessage());
                             e.printStackTrace();
 
-                            //in caso di errore sovrascrivo il codice con OP_FAIL
+                            // in caso di errore sovrascrivo il codice con OP_FAIL
                             answerCode = opCode.OP_FAIL;
                             key.attach(answerCode);
                             key.interestOps(SelectionKey.OP_WRITE);
                             continue;
                         }
-                        catch(NullPointerException e)
+                        catch(NullPointerException e) // se non leggo nulla dal socket chiudo questa connessione
                         {
                             key.cancel();
                             clientSocketChannel.close();
@@ -197,6 +212,9 @@ public class MainServer
                         String usr = op_in.getUsername();
                         String psw = op_in.getPassword();
 
+                        /* controllo il tipo di richiesta ricevuta.
+                           Per i vari codici operazione vedi la enum 'opCode'
+                          */
                         switch (op_in.getCode())
                         {
 
@@ -204,10 +222,10 @@ public class MainServer
                             {
                                 UserInfo userInfo = registeredUsers.getUser(usr);
 
-                                /* mando inviti pendenti all'utente */
+                                // mando inviti pendenti all'utente
                                 Utils.sendObject(clientSocketChannel,userInfo.getPendingInvitations());
 
-                                /* pulisco la lista degli inviti pendenti */
+                                // pulisco la lista degli inviti pendenti
                                 userInfo.clearPendingInvites();
 
                                 answerCode = opCode.OP_OK;
@@ -218,6 +236,9 @@ public class MainServer
                             {
                                 String owner = op_in.getOwner();
 
+                                /* se owner = username,
+                                   allora mando solo i file di cui l'utente che ha fatto la richiesta è proprietario.
+                                  */
                                 boolean onlyMyFiles = usr.equals(owner);
 
                                 /* mando all'utente la lista di file che può gestire,
@@ -228,8 +249,8 @@ public class MainServer
                                     ArrayList<String> nameToSend = new ArrayList<>();
                                     for (String s: registeredUsers.getUser(usr).getFiles())
                                     {
-                                        /* costruisco l'opportuno pattern che il client leggerà
-                                           nomefile_owner_numsezioni
+                                        /* costruisco l'opportuno pattern che il client leggerà:
+                                           < nomefile_owner_numsezioni >
                                          */
 
                                         if(!onlyMyFiles || userFiles.get(s).getOwner().equals(owner))
@@ -286,11 +307,11 @@ public class MainServer
 
                                     if(!editingFilename.equals(""))
                                     {
-                                        //se l'utente stava editando una sezione, la sblocco
+                                        // se l'utente stava editando una sezione, la sblocco
                                         FileInfo fileInfo = userFiles.get(editingFilename);
                                         fileInfo.unlockSection(editingSection - 1);
 
-                                        //decremento il numero di collaboratori sul file
+                                        // decremento il numero di collaboratori sul file
                                         fileInfo.decCounterEditors();
                                     }
 
@@ -310,27 +331,25 @@ public class MainServer
                                 String collectionFileName = filename + "_" + usr;
                                 int nsections = op_in.getSection();
 
-                                //controllo che non esista un file con lo stesso nome, creato dallo stesso utente
+                                // controllo che non esista un file con lo stesso nome, creato dallo stesso utente
                                 if(userFiles.containsKey(collectionFileName))
                                 {
                                     answerCode = opCode.ERR_FILE_ALREADY_EXISTS;
                                 }
-                                else //se non esiste, aggiungo il file alla collezione gestita dal server
+                                else // se non esiste, aggiungo il file alla collezione gestita dal server
                                 {
-                                    //creo la directory che conterrà le sezioni del file 'filename'
+                                    // creo la directory che conterrà le sezioni del documento
                                     Files.createDirectories(Paths.get(Utils.getPath(usr,filename,0,true)));
-
 
                                     boolean err = false;
 
-                                    //creo le sezioni del file
+                                    // creo le sezioni del documento
                                     for (int i = 1; i <= nsections; i++)
                                     {
                                         try
                                         {
                                             Files.createFile(Paths.get(Utils.getPath(usr,filename,i,true)));
                                         }
-                                        //if(!sec.createNewFile())
                                         catch(IOException ioe)
                                         {
                                             err = true;
@@ -338,6 +357,7 @@ public class MainServer
                                         }
                                     }
 
+                                    // se non sono avvenuti errori in fase di creazione del file
                                     if(!err)
                                     {
                                         //genero un indirizzo di multicast da assegnare al file che sto per creare
@@ -360,8 +380,11 @@ public class MainServer
                                         registeredUsers.getUser(usr).addFile(collectionFileName);
                                         answerCode = opCode.OP_OK;
                                     }
-                                    else
+                                    else // se ci sono stati errori, elimino la directory appena creata
+                                    {
+                                        Utils.deleteDirectory(Utils.getPath(usr,filename,0,true));
                                         answerCode = opCode.OP_FAIL;
+                                    }
                                 }
                                 break;
                             }
@@ -380,26 +403,30 @@ public class MainServer
 
                                 if(userInfo.canEdit(collectionFilename)) //utente con permessi
                                 {
+                                    /* SHOW_ALL richiede tutte le sezioni (successivamente) , quindi non effettuo
+                                       ulteriori controlli sul documento
+                                      */
                                     if(!op_in.getCode().equals(opCode.SHOW_ALL))
                                     {
                                         if(!fileInfo.isLocked(section-1)) //sezione non lockata
                                         {
+                                            // se la richiesta è di editing ...
                                             if(op_in.getCode().equals(opCode.EDIT))
                                             {
-                                                //lock sulla sezione
+                                                // ... lock sulla sezione
                                                 fileInfo.lockSection(section-1);
 
-                                                //salvo qual è il file che l'utente sta modificando
+                                                // salvo qual è il documento che l'utente sta modificando
                                                 userInfo.setEditingFilename(collectionFilename);
                                                 userInfo.setEditingSection(section);
 
-                                                //mando all'utente l'esito positivo della richiesta di EDIT
+                                                // mando all'utente l'esito positivo della richiesta di EDIT
                                                 Utils.sendBytes(clientSocketChannel, opCode.OP_OK.toString().getBytes());
 
-                                                //mando all'utente l'indirizzo di multicast associato al file
+                                                // mando all'utente l'indirizzo di multicast associato al file
                                                 Utils.sendBytes(clientSocketChannel,fileInfo.getAddress().getBytes());
 
-                                                //aumento il numero di collaboratori del file
+                                                // aumento il numero di collaboratori del documento
                                                 fileInfo.incCounterEditors();
                                             }
                                             answerCode = opCode.OP_OK;
@@ -422,9 +449,13 @@ public class MainServer
                                 int section = op_in.getSection();
                                 String collectionFilename = filename + "_" + owner;
 
+                                /* trasferisco la sezione richiesta all'utente
+                                   (se sono arrivato qui, ho già effettuato i vari controlli
+                                   su mutua esclusione e permessi) */
                                 try
                                 {
                                     Utils.transferToSection(clientSocketChannel,Utils.getPath(owner,filename,section,true).replaceFirst("./",""));
+                                    // segnalo all'utente se tale sezione è in fase di editing
                                     if(userFiles.get(collectionFilename).isLocked(section-1))
                                         answerCode = opCode.SECTION_EDITING;
                                     else
@@ -445,21 +476,21 @@ public class MainServer
                                 String collectionFilename = filename + "_" + owner;
                                 int section = op_in.getSection();
 
-                                //ricevo il nuovo file dal client
+                                // ricevo la sezione aggiornata dall'utente
                                 try
                                 {
                                     Utils.transferFromSection(clientSocketChannel,usr,true);
 
-                                    //tengo traccia del fatto che l'utente non sta più editando
+                                    // tengo traccia del fatto che l'utente non sta più editando
                                     registeredUsers.getUser(usr).setEditingFilename("");
                                     registeredUsers.getUser(usr).setEditingSection(0);
 
                                     FileInfo fileInfo = userFiles.get(collectionFilename);
 
-                                    //sblocco la sezione che l'utente stava editando
+                                    // sblocco la sezione che l'utente stava editando
                                     fileInfo.unlockSection(section-1);
 
-                                    //decremento il numero di collaboratori sul file che l'utente stava editando
+                                    // decremento il numero di collaboratori sul file che l'utente stava editando
                                     fileInfo.decCounterEditors();
 
                                     answerCode = opCode.OP_OK;
@@ -483,9 +514,9 @@ public class MainServer
 
                                 UserInfo userInfo = registeredUsers.getUser(owner);
 
-                                if(userInfo == null) //utente inesistente
+                                if(userInfo == null) // utente inesistente
                                     answerCode = opCode.ERR_USER_UNKNOWN;
-                                else if(userInfo.canEdit(collectionFilename)) //controllo che l'utente non sia già stato invitato
+                                else if(userInfo.canEdit(collectionFilename)) // controllo che l'utente non sia già stato invitato
                                 {
                                     answerCode = opCode.ERR_USER_ALREADY_INVITED;
                                 }
@@ -493,16 +524,14 @@ public class MainServer
                                 {
                                     userInfo.addFile(collectionFilename);
 
-                                    //utente non online, aggiungo l'invito alla sua lista di inviti pendenti
+                                    // utente non online, aggiungo l'invito alla sua lista di inviti pendenti
                                     if(!userInfo.isOnline())
                                     {
                                         Message invitation = new Message(usr, filename, new Date());
                                         userInfo.addPendingInvite(invitation);
                                     }
-
-                                    else
+                                    else // utente online, gli mando l'invito in tempo reale
                                     {
-                                        //mando in tempo reale l'invito all'utente
                                         Message invitation = new Message(usr, filename, new Date());
                                         Utils.sendObject(userInfo.getInviteSocketChannel(), invitation);
                                     }
@@ -526,6 +555,7 @@ public class MainServer
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
                         opCode answerCode = (opCode) key.attachment();
 
+                        // scrivo l'esito della richiesta fatta dall'utente
                         Utils.sendBytes(clientSocketChannel,answerCode.toString().getBytes());
                         key.interestOps(SelectionKey.OP_READ);
                     }

@@ -23,19 +23,25 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 
+/**
+ * Classe contenente costanti e funzioni di utilità, utilizzate in tutto il progetto.
+ */
 public class Utils
 {
-
+    // costanti che indicano i path delle home directory dei file nei client / server TURING
     public static String CLIENT_FILES_PATH = "./client_files/";
     public static String SERVER_FILES_PATH = "./turing_files/";
 
+    /* costanti che indicano l'indirizzo e le porte su cui aprire le socket TCP/UDP per la
+       comunicazione tra clients e server
+      */
     public static String ADDRESS = "127.0.0.1";
     public static int REGISTRATION_PORT = 5001;
     public static int CLIENT_PORT = 5002;
     public static int INVITE_PORT = 5003;
     public static int MULTICAST_PORT = 5004;
 
-    /* utility per la gestione di ricezione/invio oggetti e bytes su socket */
+    /* Procedure che assicurano la scrittura di esattamente 'n' bytes sul socket 'socket' */
 
     private static void writeN(SocketChannel socket, ByteBuffer buffer, int n) throws IOException
     {
@@ -54,54 +60,17 @@ public class Utils
         while(counter < n);
     }
 
-    private static ByteBuffer serializeObject(Serializable serializable) throws IOException
-    {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(serializable);
-        oos.close();
 
-        return ByteBuffer.wrap(baos.toByteArray());
-    }
+    /* Utility per la gestione di ricezione / invio di Objects (serializzabili) e bytes su socket */
 
-    public static Serializable deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException
-    {
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-        return (Serializable) ois.readObject();
-    }
-
-    public static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
-    {
-        ByteBuffer wrap = serializeObject(serializable);
-
-        int length = wrap.remaining();
-        sendLength(socket,length);
-
-        writeN(socket,wrap,length);
-    }
-
-    public static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
-    {
-        ByteBuffer dataByteBuffer;
-
-        int length = recvLength(socket);
-
-        if(length != 0)
-        {
-            dataByteBuffer = ByteBuffer.allocate(length);
-
-            readN(socket,dataByteBuffer,length);
-
-            Serializable ret = deserializeObject(dataByteBuffer.array());
-
-            // clean up
-            dataByteBuffer.clear();
-            return ret;
-        }
-        else
-            return null;
-    }
-
+    /**
+     * Procedura per scrivere un intero sul socket (sempre la lunghezza di un oggetto scritto successivamente).
+     *
+     * @param socket socket su cui scrivere l'intero
+     * @param length intero da scrivere
+     *
+     * @throws IOException errore nella scrittura sul socket
+     */
     private static void sendLength(SocketChannel socket, int length) throws IOException
     {
         ByteBuffer dimBuffer = ByteBuffer.wrap(new byte[4]);
@@ -113,6 +82,15 @@ public class Utils
         writeN(socket,dimBuffer,4);
     }
 
+    /**
+     * Funzione  per leggere un intero dal socket (sempre la lunghezza di un oggetto letto successivamente).
+     *
+     * @param socket sokcet da cui leggere l'intero
+     *
+     * @return intero letto
+     *
+     * @throws IOException errore nella lettura sul socket
+     */
     private static int recvLength(SocketChannel socket) throws IOException
     {
         ByteBuffer lengthBuffer = ByteBuffer.wrap(new byte[4]);
@@ -126,6 +104,101 @@ public class Utils
         return length;
     }
 
+    /**
+     * Funzione per trasformare un oggetto in un array di byte
+     * @param serializable oggetto da serializzare
+     * @return ByteBuffer contenente l'oggetto serializzato
+     * @throws IOException errore nell' apertura o scrittura sullo stream
+     */
+    private static ByteBuffer serializeObject(Serializable serializable) throws IOException
+    {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(serializable);
+        oos.close();
+
+        return ByteBuffer.wrap(baos.toByteArray());
+    }
+
+    /**
+     * Funzione per convertire un array di byte in un oggetto.
+     *
+     * @param bytes array di bytes da cui estrarre l'oggetto
+     *
+     * @return l'oggetto.
+     * @throws IOException errore nell' apertura o lettura dallo stream
+     * @throws ClassNotFoundException la classe dell'oggetto serializzato non è stata trovata
+     */
+    public static Serializable deserializeObject(byte[] bytes) throws IOException, ClassNotFoundException
+    {
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        return (Serializable) ois.readObject();
+    }
+
+    /**
+     * Procedura per mandare un oggetto (opportunamente trasformato in un array di byte) su un socket.
+     *
+     * @param socket socket su cui mandare l'oggetto
+     * @param serializable oggetto da mandare
+     *
+     * @throws IOException errore di I/O sul socket o stream
+     */
+    public static void sendObject(SocketChannel socket, Serializable serializable) throws IOException
+    {
+        ByteBuffer wrap = serializeObject(serializable);
+
+        int length = wrap.remaining();
+
+        // mando la lunghezza dell'oggetto serializzato
+        sendLength(socket,length);
+
+        if(length != 0)
+            // mando l'oggetto serializzato
+            writeN(socket,wrap,length);
+    }
+
+    /**
+     * Funzione per leggere un oggetto da un socket.
+     *
+     * @param socket socket da cui leggere l'oggetto
+     * @return oggetto, se la lettura è avvenuta correttamente
+     *         null altrimenti
+     *
+     * @throws IOException errore di I/O su socket o stream
+     * @throws ClassNotFoundException la classe dell'oggetto serializzato non è stata trovata
+     */
+    public static Serializable recvObject(SocketChannel socket) throws IOException, ClassNotFoundException
+    {
+        ByteBuffer dataByteBuffer;
+
+        // ricevo la lunghezza dell'oggetto serializzato
+        int length = recvLength(socket);
+
+        if(length != 0)
+        {
+            dataByteBuffer = ByteBuffer.allocate(length);
+
+            // ricevo l'oggetto serializzato
+            readN(socket,dataByteBuffer,length);
+            Serializable ret = deserializeObject(dataByteBuffer.array());
+
+            // clean up
+            dataByteBuffer.clear();
+            return ret;
+        }
+        else
+            return null;
+    }
+
+    /**
+     * Procedura per spedire un array di bytes su un socket.
+     *
+     * @param socket socket su cui spedire l'array di bytes
+     * @param bytes array di bytes da spedire
+     *
+     * @throws IOException errore di scrittura sul socket
+     */
     public static void sendBytes(SocketChannel socket, byte[] bytes) throws IOException
     {
         sendLength(socket,bytes.length);
@@ -138,6 +211,14 @@ public class Utils
         bytesBuffer.clear();
     }
 
+    /**
+     * Funzione per leggere un array di bytes da un socket.
+     *
+     * @param socket socket da cui leggere l'array di bytes.
+     * @return array di bytes letto.
+     *
+     * @throws IOException errore di lettura dal socket
+     */
     public static byte[] recvBytes(SocketChannel socket) throws IOException
     {
         //leggo la dimensione del code che sto per ricevere
@@ -155,9 +236,16 @@ public class Utils
         bytesBuffer.get(answerBytes);
 
         return answerBytes;
-
     }
 
+    /**
+     * Procedura che scrive una sezione di un documento su un socket.
+     *
+     * @param socket socket su cui scrivere
+     * @param filepath path della sezione da scrivere
+     *
+     * @throws IOException errore di I/O sul socket o filepath errato
+     */
     public static void transferToSection(SocketChannel socket, String filepath) throws IOException
     {
 
@@ -179,16 +267,16 @@ public class Utils
             throw new IOException();
         }
 
-        //elimino "Utils.Utils.*_FILES_PATH/<username>/" dal filepath
+        // elimino "Utils.Utils.*_FILES_PATH/<username>/" dal filepath
         String pathWithoutSource = filepath.split("/",3)[2];
 
         byte[] pathBytes = pathWithoutSource.getBytes();
 
-        //mando il path
+        // mando il path
         sendBytes(socket,pathBytes);
 
 
-        //mando lunghezza del file
+        // mando lunghezza del file
         sendLength(socket, fileLength);
 
         if(fileLength != 0)
@@ -203,31 +291,38 @@ public class Utils
         fis.close();
     }
 
+    /**
+     * Procedura che scrive una sezione di un documento ricevuta da un socket, su un file.
+     *
+     * @param socket socket da cui leggere
+     * @param username username del proprietario del documento o dell'utente che ha fatto richiesta di ricevere una sezione
+     * @param isServer booleano che indica se la richiesta è fatta dal server o dal client {TRUE = server, FALSE = client}
+     *
+     * @throws IOException errore di I/O sul socket o filepath errato (sezione non trovata)
+     */
     public static void transferFromSection(SocketChannel socket, String username, boolean isServer) throws IOException
     {
-        //leggo il path
+        // leggo il path
         byte[] pathBytes = recvBytes(socket);
         String filepath = new String(pathBytes);
 
         filepath = ((isServer) ? Utils.SERVER_FILES_PATH : Utils.CLIENT_FILES_PATH) + username + "/" + filepath;
 
+        // creo la directory (se non esiste già) che conterrà il file che sto per ricevere
         Files.createDirectories(Paths.get(filepath.substring(0,filepath.lastIndexOf("/"))));
 
-        //File f = new File(filepath);
-
         try{ Files.createFile(Paths.get(filepath)); }
-        catch(FileAlreadyExistsException f){}
-        //f.createNewFile(); //se il file già esiste lo sovrascrivo
+        catch(FileAlreadyExistsException f) { throw new IOException(); }
 
         FileOutputStream fos = new FileOutputStream(filepath);
         FileChannel fc = fos.getChannel();
 
-        //leggo lunghezza del file
+        // leggo la lunghezza del documento
         int fileLength = recvLength(socket);
 
         if(fileLength != 0)
         {
-            //leggo il file
+            // leggo il documento
             int n = 0;
             do{ n += fc.transferFrom(socket,0, fileLength); }
             while(n < fileLength);
@@ -239,6 +334,16 @@ public class Utils
 
     /* --------------------------------- */
 
+    /**
+     * Funzione che restituisce il percorso in cui è salvato un documento o una sua sezione.
+     *
+     * @param username username dell'utente che ha richiesto il documento (client), o proprietario del documento (server)
+     * @param filename nome del documento
+     * @param section numero di sezione richiesta
+     * @param isServer indica se la richiesta è fatta dal client o dal server { TRUE = server, FALSE = client}
+     *
+     * @return il percorso in cui è salvato il documento
+     */
     public static String getPath(String username, String filename, int section, boolean isServer)
     {
         return ((isServer) ? SERVER_FILES_PATH : CLIENT_FILES_PATH) +
@@ -246,6 +351,13 @@ public class Utils
                 ((section == 0) ? "" : ("/" + filename + section + ".txt"));
     }
 
+    /**
+     * Procedura ausiliaria che svuota una directory per poi eliminarla.
+     *
+     * @param path percorso della directory da eliminare
+     *
+     * @throws IOException errore di I/O quando si accede al percorso 'path'
+     */
     public static void deleteDirectory(String path) throws IOException
     {
         Files.walk(Paths.get(path))
@@ -254,6 +366,7 @@ public class Utils
                 .forEach(File::delete);
     }
 
+    /* Procedure ausiliare per spostarsi tra i vari frame della GUI */
     public static void showPreviousFrame(Component c)
     {
         //ottengo il frame corrente
@@ -275,6 +388,9 @@ public class Utils
         new MyFrame(oldFrame, frame);
     }
 
+    /* Utility per la gestione delle aree di testo
+       (chat dei client, log del server)
+     */
     public static synchronized void appendToPane(JTextPane tp, String msg, Color c, boolean bold)
     {
         StyleContext sc = StyleContext.getDefaultStyleContext();
@@ -321,8 +437,6 @@ public class Utils
 
     public static void printLog(String msg, opCode requestCode, opCode answerCode)
     {
-        //printTimeStamp(ServerPanel.logPane, new Date());
-
         Utils.appendToPane(ServerPanel.logPane, msg, Color.RED,true);
         Utils.appendToPane(ServerPanel.logPane, "  REQUEST: ", Color.BLACK,false);
         Utils.appendToPane(ServerPanel.logPane, String.valueOf(requestCode), Color.BLUE,true);
@@ -332,8 +446,18 @@ public class Utils
         Utils.appendToPane(ServerPanel.logPane, answerCode + "\n", c,true);
     }
 
+    /**
+     * Procedura che effettua l'invio di un messaggio sul socket multicast dell chat degli utenti
+     * che editano uno stesso documento.
+     *
+     * @param sender username del mittente del messaggio
+     * @param msg corpo del messaggio
+     * @param address indirizzo multicast su cui mandare il messaggio (può essere NULL)
+     * @param component riferimento al componente grafico su cui visualizzare un popup in caso di errore (può essere NULL)
+     */
     public static void sendChatMessage(String sender, String msg, String address, Component component)
     {
+        // se address è
         if(address == null)
         {
             if(component != null)
