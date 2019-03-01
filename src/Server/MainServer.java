@@ -97,22 +97,6 @@ public class MainServer
                     { System.err.println("Can't delete " + Utils.SERVER_FILES_PATH); }
                 }));
 
-        /* Creazione del socket TCP per la notifica degli inviti
-
-        ServerSocketChannel inviteSSC;
-        try
-        {
-            inviteSSC = ServerSocketChannel.open();
-            ServerSocket inviteServerSocket = inviteSSC.socket();
-            inviteServerSocket.bind(new InetSocketAddress(Utils.ADDRESS, Utils.INVITE_PORT));
-        }
-        catch(IOException ioe)
-        {
-            System.err.println("Error opening server socket for invites management " + ioe.toString() + ioe.getMessage());
-            ioe.printStackTrace();
-            return;
-        } */
-
         /* Creazione del socket TCP per la ricezione delle richieste dei client
         *  e invio degli esiti di tali richieste */
 
@@ -278,12 +262,8 @@ public class MainServer
                                 /* cancello il socket degli inviti dal selettore,
                                 in quanto non mi aspetto altre richieste di scrittura da esso
                                  */
-
                                 key.cancel();
-                                clientSocketChannel.configureBlocking(true);
                                 continue;
-                                //answerCode = opCode.OP_OK;
-                                //break;
                             }
 
                             case LOGIN:

@@ -6,15 +6,9 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0a4142e1-e9cd-428d-8f0a-bb7982e34feb" name="Default Changelist" comment="01-03-2019 16:02 - &#10; - Corretto bug su 'Files.createFile' nella procedura &quot;Utils.transferFromSectio&quot;">
+    <list default="true" id="0a4142e1-e9cd-428d-8f0a-bb7982e34feb" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Client/InviteTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/InviteTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Client/MainClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/MainClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GUI/ManagePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI/ManagePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GUI/TuringPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI/TuringPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server/MainServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server/MainServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Utils/Utils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Utils/Utils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Utils/opCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Utils/opCode.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -48,7 +42,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Utils/Utils.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="93">
@@ -75,7 +69,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="368">
+            <state relative-caret-position="6345">
               <caret line="438" column="25" selection-start-line="438" selection-start-column="25" selection-end-line="438" selection-end-column="25" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -84,11 +78,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Server/MainServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="234">
-              <caret line="129" column="22" selection-start-line="129" selection-start-column="12" selection-end-line="129" selection-end-column="22" />
+            <state relative-caret-position="161">
+              <caret line="263" column="35" selection-start-line="263" selection-start-column="35" selection-end-line="263" selection-end-column="35" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -99,8 +93,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="86">
-              <caret line="181" column="73" selection-start-line="181" selection-start-column="73" selection-end-line="181" selection-end-column="73" />
+            <state relative-caret-position="2595">
+              <caret line="180" column="73" selection-start-line="180" selection-start-column="73" selection-end-line="180" selection-end-column="73" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -111,7 +105,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/GUI/TuringPanel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="219">
+            <state relative-caret-position="2115">
               <caret line="155" column="21" selection-start-line="155" selection-start-column="21" selection-end-line="155" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -133,7 +127,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>&quot;SEC</find>
       <find>receive</find>
       <find>thread</find>
       <find>Closed Channe</find>
@@ -163,6 +156,7 @@
       <find>case SET</find>
       <find>case FILE_LIST</find>
       <find>System.out</find>
+      <find>configureblock</find>
     </findStrings>
     <replaceStrings>
       <replace>clientFiles</replace>
@@ -227,10 +221,10 @@
         <option value="$PROJECT_DIR$/src/Utils/opCode.java" />
         <option value="$PROJECT_DIR$/src/Client/InviteTask.java" />
         <option value="$PROJECT_DIR$/src/Client/MainClient.java" />
-        <option value="$PROJECT_DIR$/src/Server/MainServer.java" />
         <option value="$PROJECT_DIR$/src/GUI/TuringPanel.java" />
         <option value="$PROJECT_DIR$/src/Utils/Utils.java" />
         <option value="$PROJECT_DIR$/src/GUI/ManagePanel.java" />
+        <option value="$PROJECT_DIR$/src/Server/MainServer.java" />
       </list>
     </option>
   </component>
@@ -250,7 +244,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -278,12 +271,19 @@
               <item name="TURING" type="b2602c69:ProjectViewProjectNode" />
               <item name="TURING" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="Server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="TURING" type="b2602c69:ProjectViewProjectNode" />
+              <item name="TURING" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="Utils" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -416,7 +416,8 @@
       <workItem from="1551373498386" duration="114000" />
       <workItem from="1551447328405" duration="4297000" />
       <workItem from="1551451806803" duration="1180000" />
-      <workItem from="1551453536699" duration="174000" />
+      <workItem from="1551453536699" duration="287000" />
+      <workItem from="1551456821961" duration="185000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1546715215223</created>
@@ -495,11 +496,18 @@
       <option name="project" value="LOCAL" />
       <updated>1551367593686</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="01-03-2019 16:22 - &#10; - Corretto bug su 'Files.createFile' nella procedura &quot;Utils.transferFromSection&quot;&#10; - Corretto bug sull'associazione ad un client del socket degli inviti nel server. Ora il socket viene registrato al selettore e dopo aver mandato una richiesta di SET_INVITATION_SOCK, viene associato al client e tolto dal selettore">
+      <created>1551453810406</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1551453810406</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="196970000" />
+    <option name="totallyTimeSpent" value="197268000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -519,14 +527,14 @@
       <window_info id="UI Designer" order="2" />
       <window_info id="Image Layers" order="3" />
       <window_info id="Favorites" order="4" sideWeight="0.5010707" side_tool="true" weight="0.24964234" />
-      <window_info active="true" content_ui="combo" id="Project" order="5" sideWeight="0.49892932" visible="true" weight="0.24678111" />
+      <window_info content_ui="combo" id="Project" order="5" sideWeight="0.49892932" visible="true" weight="0.25035766" />
       <window_info id="Structure" order="6" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Event Log" order="0" sideWeight="0.5028612" side_tool="true" weight="0.32611832" />
-      <window_info anchor="bottom" id="Version Control" order="1" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="1" weight="0.32900432" />
       <window_info anchor="bottom" id="Terminal" order="2" />
       <window_info anchor="bottom" id="Message" order="3" />
       <window_info anchor="bottom" id="Find" order="4" weight="0.32467532" />
-      <window_info anchor="bottom" id="Run" order="5" sideWeight="0.49713877" visible="true" weight="0.31746033" />
+      <window_info active="true" anchor="bottom" id="Run" order="5" sideWeight="0.49713877" visible="true" weight="0.31746033" />
       <window_info anchor="bottom" id="Debug" order="6" weight="0.3968254" />
       <window_info anchor="bottom" id="Cvs" order="7" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="8" weight="0.4" />
@@ -585,6 +593,16 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit" />
     <MESSAGE value="20-02-2019 20:02&#10; - Added class &quot;FileInfo&quot;&#10; - Updated general project structure&#10; - Added new enum values of &quot;opCode&quot;" />
@@ -599,7 +617,8 @@
     <MESSAGE value="26-02-2019 16:26 - &#10; - Now use Files (java.NIO) to create files in server / client directories" />
     <MESSAGE value="26-02-2019 16:14 - &#10; - Finished documentation and code comments" />
     <MESSAGE value="26-02-2019 16:25 - &#10; - Finished documentation and code comments" />
-    <option name="LAST_COMMIT_MESSAGE" value="26-02-2019 16:25 - &#10; - Finished documentation and code comments" />
+    <MESSAGE value="01-03-2019 16:22 - &#10; - Corretto bug su 'Files.createFile' nella procedura &quot;Utils.transferFromSection&quot;&#10; - Corretto bug sull'associazione ad un client del socket degli inviti nel server. Ora il socket viene registrato al selettore e dopo aver mandato una richiesta di SET_INVITATION_SOCK, viene associato al client e tolto dal selettore" />
+    <option name="LAST_COMMIT_MESSAGE" value="01-03-2019 16:22 - &#10; - Corretto bug su 'Files.createFile' nella procedura &quot;Utils.transferFromSection&quot;&#10; - Corretto bug sull'associazione ad un client del socket degli inviti nel server. Ora il socket viene registrato al selettore e dopo aver mandato una richiesta di SET_INVITATION_SOCK, viene associato al client e tolto dal selettore" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="antWorkspaceConfiguration">
@@ -991,46 +1010,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/TuringPanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="219">
-          <caret line="155" column="21" selection-start-line="155" selection-start-column="21" selection-end-line="155" selection-end-column="21" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="368">
-          <caret line="438" column="25" selection-start-line="438" selection-start-column="25" selection-end-line="438" selection-end-column="25" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Server/MainServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
-          <caret line="129" column="22" selection-start-line="129" selection-start-column="12" selection-end-line="129" selection-end-column="22" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="86">
-          <caret line="181" column="73" selection-start-line="181" selection-start-column="73" selection-end-line="181" selection-end-column="73" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Utils/Utils.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="93">
@@ -1049,6 +1028,46 @@
             <element signature="method#printTimeStamp#0;class#Utils#0" />
             <element signature="method#printInvite#0;class#Utils#0" />
             <element signature="method#sendChatMessage#0;class#Utils#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6345">
+          <caret line="438" column="25" selection-start-line="438" selection-start-column="25" selection-end-line="438" selection-end-column="25" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2595">
+          <caret line="180" column="73" selection-start-line="180" selection-start-column="73" selection-end-line="180" selection-end-column="73" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/TuringPanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2115">
+          <caret line="155" column="21" selection-start-line="155" selection-start-column="21" selection-end-line="155" selection-end-column="21" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Server/MainServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="263" column="35" selection-start-line="263" selection-start-column="35" selection-end-line="263" selection-end-column="35" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
