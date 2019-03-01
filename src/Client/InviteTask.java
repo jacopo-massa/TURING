@@ -36,7 +36,6 @@ public class InviteTask implements Runnable
                 if(invitation == null)
                     throw new NullPointerException();
 
-
                 // stampo l'invito
                 Utils.printInvite(invitation.getSender(), invitation.getBody(), invitation.getDate());
             }

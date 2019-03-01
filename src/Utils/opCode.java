@@ -16,6 +16,7 @@ public enum opCode
     SHOW_ALL,
     INVITE,
 
+    SET_INVITATION_SOCK,    // il server associa ad un client la sua seconda socket su cui spedire gli inviti
     PENDING_INVITATIONS,    // il client richiede inviti pendenti ricevuti mentre era offline
     FILE_LIST,              // il client richiede la lista di file a cui può accedere
     SECTION_RECEIVE,        // il client richiede di ricevere una sezione di un documento

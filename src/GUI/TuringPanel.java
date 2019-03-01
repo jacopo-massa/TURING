@@ -114,6 +114,7 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                 case "INVIA":
                 {
                     Utils.sendChatMessage(usr,sendArea.getText(),editingFileAddress,this);
+                    sendArea.setText("");
                     break;
                 }
                 case "LOGOUT":
@@ -142,23 +143,30 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                     Operation request = new Operation(usr);
                     request.setPassword(psw);
                     request.setCode(opCode.FILE_LIST);
-
+                    opCode ans;
                     /* se voglio effettuare un invito, mi assicuro di ricevere solo i documenti
                        di cui sono proprietario, impostanto owner = username, come si aspetta il server
                       */
                     if(cmd.equals("INVITE"))
                         request.setOwner(usr);
-                    MainClient.sendReq(request);
+
+                    MainClient.sendReq(MainClient.clientSocketChannel,request);
 
                     try
-                    { clientFiles = (ArrayList<String>) Utils.recvObject(MainClient.clientSocketChannel); }
+                    {
+                        clientFiles = (ArrayList<String>) Utils.recvObject(MainClient.clientSocketChannel);
+
+                        if(clientFiles == null)
+                            throw new IOException();
+                    }
                     catch(ClassNotFoundException | IOException ex)
                     {
                         System.err.println("Can't download file list");
                         ex.printStackTrace();
+                        ans = opCode.OP_FAIL;
                     }
 
-                    opCode ans = MainClient.getAnswer();
+                    ans = MainClient.getAnswer();
 
                     if(ans != opCode.OP_OK)
                     {

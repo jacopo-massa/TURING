@@ -38,8 +38,7 @@ public class Utils
     public static String ADDRESS = "127.0.0.1";
     public static int REGISTRATION_PORT = 5001;
     public static int CLIENT_PORT = 5002;
-    public static int INVITE_PORT = 5003;
-    public static int MULTICAST_PORT = 5004;
+    public static int MULTICAST_PORT = 5003;
 
     /* Procedure che assicurano la scrittura di esattamente 'n' bytes sul socket 'socket' */
 
@@ -312,7 +311,7 @@ public class Utils
         Files.createDirectories(Paths.get(filepath.substring(0,filepath.lastIndexOf("/"))));
 
         try{ Files.createFile(Paths.get(filepath)); }
-        catch(FileAlreadyExistsException f) { throw new IOException(); }
+        catch(FileAlreadyExistsException ignored) {}
 
         FileOutputStream fos = new FileOutputStream(filepath);
         FileChannel fc = fos.getChannel();
@@ -442,7 +441,14 @@ public class Utils
         Utils.appendToPane(ServerPanel.logPane, String.valueOf(requestCode), Color.BLUE,true);
         Utils.appendToPane(ServerPanel.logPane, "  RESULT: ", Color.BLACK,false);
 
-        Color c = (answerCode == opCode.OP_FAIL) ? Color.RED : Color.GREEN;
+        Color c;
+        if (answerCode == opCode.OP_OK)
+            c = Color.GREEN;
+        else if(answerCode == opCode.OP_FAIL)
+            c = Color.RED;
+        else
+            c = Color.PINK;
+
         Utils.appendToPane(ServerPanel.logPane, answerCode + "\n", c,true);
     }
 

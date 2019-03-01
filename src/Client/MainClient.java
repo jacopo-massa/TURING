@@ -64,12 +64,13 @@ public class MainClient
      * Procedura per effettuare l'invio di una richiesta al server
      *
      * @param op contiene il codice della richiesta ed eventuali parametri
+     * @param socketChannel il socket su cui mandare la richiesta
      */
-    public static void sendReq(Operation op)
+    public static void sendReq(SocketChannel socketChannel, Operation op)
     {
         try
         {
-            Utils.sendObject(clientSocketChannel,op);
+            Utils.sendObject(socketChannel,op);
         }
         catch(NullPointerException npe)
         {
@@ -96,22 +97,25 @@ public class MainClient
      */
     public static opCode getAnswer()
     {
+        opCode answerCode;
         try
         {
             byte[] answerBytes = Utils.recvBytes(clientSocketChannel);
 
             if(answerBytes.length == 0)
-                return opCode.OP_FAIL;
+                answerCode = opCode.OP_FAIL;
             else
-                return opCode.valueOf(new String(answerBytes));
+                answerCode = opCode.valueOf(new String(answerBytes));
 
         }
         catch (IOException | NullPointerException e)
         {
             System.err.println("Error in reading operation code result");
             e.printStackTrace();
-            return opCode.OP_FAIL;
+            answerCode = opCode.OP_FAIL;
         }
+
+        return answerCode;
     }
 
 
@@ -213,47 +217,48 @@ public class MainClient
             Operation request = new Operation(username);
             request.setPassword(password);
             request.setCode(opCode.LOGIN);
-            sendReq(request);
 
-            //apro la socket degli inviti
-            inviteSocketChannel = openConnection(Utils.INVITE_PORT);
-            if(inviteSocketChannel == null)
-            {
-                //in caso di errore chiudo tutte le socket
-                try {clientSocketChannel.close();}
-                catch (IOException e) {e.printStackTrace();}
-                answerCode = opCode.OP_FAIL;
-            }
-            else
-            {
-                answerCode = getAnswer();
+            sendReq(clientSocketChannel,request);
+            answerCode = getAnswer();
 
-                //se il login è andato a buon fine, inizializzo il thread per ricevere gli inviti
-                if(answerCode == opCode.OP_OK)
+            //se il login è andato a buon fine, inizializzo il thread per ricevere gli inviti
+            if(answerCode == opCode.OP_OK)
+            {
+                // apro un nuovo socket per ricevere gli inviti
+                inviteSocketChannel = openConnection(Utils.CLIENT_PORT);
+                if(inviteSocketChannel == null)
                 {
-                    //creo il thread per la ricezione degli inviti
-                    inviteThread = new Thread(new InviteTask(inviteSocketChannel));
-                    inviteThread.start();
+                    //in caso di errore chiudo tutte le socket
+                    try {clientSocketChannel.close();}
+                    catch (IOException e) {e.printStackTrace();}
+                    return opCode.OP_FAIL;
+                }
 
-                    //richiedo e scarico la lista di eventuali inviti ricevuti mentre ero offline
-                    request.setCode(opCode.PENDING_INVITATIONS);
-                    sendReq(request);
+                request.setCode(opCode.SET_INVITATION_SOCK);
+                sendReq(inviteSocketChannel, request);
 
-                    try
-                    {
-                        pendingInvitations = (ArrayList<Message>) Utils.recvObject(clientSocketChannel);
+                //creo il thread per la ricezione degli inviti
+                inviteThread = new Thread(new InviteTask(inviteSocketChannel));
+                inviteThread.start();
 
-                        if(pendingInvitations == null)
-                            throw new NullPointerException();
+                //richiedo e scarico la lista di eventuali inviti ricevuti mentre ero offline
+                request.setCode(opCode.PENDING_INVITATIONS);
+                sendReq(clientSocketChannel,request);
 
-                        //esito dell'operazione di login
-                        answerCode = getAnswer();
-                    }
-                    catch(ClassNotFoundException | IOException | NullPointerException e)
-                    {
-                        System.err.println("Error in downloading pending invites");
-                        answerCode = opCode.OP_FAIL;
-                    }
+                try
+                {
+                    pendingInvitations = (ArrayList<Message>) Utils.recvObject(clientSocketChannel);
+
+                    if(pendingInvitations == null)
+                        throw new NullPointerException();
+
+                    //esito dell'operazione di login
+                    answerCode = getAnswer();
+                }
+                catch(ClassNotFoundException | IOException | NullPointerException e)
+                {
+                    System.err.println("Error in downloading pending invites");
+                    answerCode = opCode.OP_FAIL;
                 }
             }
         }
@@ -273,7 +278,7 @@ public class MainClient
         request.setPassword(password);
         request.setCode(opCode.LOGOUT);
 
-        sendReq(request);
+        sendReq(clientSocketChannel,request);
 
         //chiudo socket del client
         if(clientSocketChannel != null)
@@ -330,7 +335,7 @@ public class MainClient
         request.setFilename(name);
         request.setSection(nsection);
 
-        sendReq(request);
+        sendReq(clientSocketChannel,request);
 
         return getAnswer();
     }
@@ -356,7 +361,7 @@ public class MainClient
         request.setOwner(owner);
         request.setSection(nsection);
 
-        sendReq(request);
+        sendReq(clientSocketChannel,request);
         opCode answerCode = getAnswer();
 
         //se voglio modificare una sezione, e la richiesta è andata a buon fine...
@@ -403,7 +408,7 @@ public class MainClient
         request.setFilename(name);
         request.setOwner(owner);
         request.setSection(section);
-        sendReq(request);
+        sendReq(clientSocketChannel,request);
 
         opCode answerCode;
 
@@ -440,7 +445,7 @@ public class MainClient
         request.setOwner(owner);
         request.setSection(section);
 
-        sendReq(request);
+        sendReq(clientSocketChannel,request);
 
         opCode answerCode;
 
@@ -478,7 +483,7 @@ public class MainClient
         request.setFilename(filename);
         request.setOwner(collaborator);
 
-        sendReq(request);
+        sendReq(clientSocketChannel,request);
         return getAnswer();
     }
 

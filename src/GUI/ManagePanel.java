@@ -1,7 +1,6 @@
 package GUI;
 
 import Client.MainClient;
-
 import Utils.Utils;
 import Utils.opCode;
 
@@ -179,7 +178,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
                         {
                             String msg;
                             if(editedSections.size() == 0)
-                                msg = "NESSUNA SEZIONE in fase di editing: \n";
+                                msg = "NESSUNA SEZIONE in fase di editing\n";
                             else
                             {
                                 msg = "Le seguenti sezioni sono in fase di editing: \n";
