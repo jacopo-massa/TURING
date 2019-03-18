@@ -1,0 +1,10 @@
+# OS-related
+.DS_Store
+
+# IDE-related
+.idea/
+*.iml
+
+# Java-related
+*.class
+*.jar
