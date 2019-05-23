@@ -123,7 +123,8 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                     {
                         case OP_OK:
                         {
-                            Utils.showNextFrame(frameCode.LOGIN,this);
+                            //Utils.showNextFrame(frameCode.LOGIN,this);
+                            Utils.showPreviousFrame(this);
                             break;
                         }
 

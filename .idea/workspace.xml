@@ -6,8 +6,10 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0a4142e1-e9cd-428d-8f0a-bb7982e34feb" name="Default Changelist" comment="">
+    <list default="true" id="0a4142e1-e9cd-428d-8f0a-bb7982e34feb" name="Default Changelist" comment="01-03-2019 17:16 - &#10; - Eliminata parte di codice inutile riguardante la vecchia gestione del socket per gli inviti nel server&#10; - Corretto possibile bug per cui le socket degli inviti associate ai client venivano configurate in modalità bloccante">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GUI/MyFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI/MyFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GUI/TuringPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI/TuringPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server/MainServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server/MainServer.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -41,12 +43,12 @@
     <favorites_list name="TURING" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+    <leaf>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Utils/Utils.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="93">
-              <caret line="152" column="34" selection-start-line="152" selection-start-column="34" selection-end-line="152" selection-end-column="34" />
+            <state relative-caret-position="938">
+              <caret line="365" column="5" selection-start-line="365" selection-start-column="5" selection-end-line="365" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="method#writeN#0;class#Utils#0" />
@@ -54,10 +56,8 @@
                 <element signature="method#sendLength#0;class#Utils#0" />
                 <element signature="method#recvBytes#0;class#Utils#0" />
                 <element signature="method#getPath#0;class#Utils#0" />
+                <element signature="docComment;method#deleteDirectory#0;class#Utils#0" />
                 <element signature="method#deleteDirectory#0;class#Utils#0" />
-                <element signature="method#showPreviousFrame#0;class#Utils#0" />
-                <element signature="method#showNextFrame#0;class#Utils#0" />
-                <element signature="method#appendToPane#0;class#Utils#0" />
                 <element signature="method#printTimeStamp#0;class#Utils#0" />
                 <element signature="method#printInvite#0;class#Utils#0" />
                 <element signature="method#sendChatMessage#0;class#Utils#0" />
@@ -67,22 +67,24 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
+        <entry file="file://$PROJECT_DIR$/src/GUI/MyFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6345">
-              <caret line="438" column="25" selection-start-line="438" selection-start-column="25" selection-end-line="438" selection-end-column="25" />
+            <state relative-caret-position="263">
+              <caret line="55" lean-forward="true" selection-start-line="55" selection-end-line="55" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#2130#2131#0" expanded="true" />
+                <element signature="e#2161#2162#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Server/MainServer.java">
+        <entry file="file://$PROJECT_DIR$/src/GUI/LoginPanel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="161">
-              <caret line="263" column="35" selection-start-line="263" selection-start-column="35" selection-end-line="263" selection-end-column="35" />
+            <state relative-caret-position="285">
+              <caret line="23" selection-start-line="23" selection-end-line="23" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -91,10 +93,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
+        <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2595">
-              <caret line="180" column="73" selection-start-line="180" selection-start-column="73" selection-end-line="180" selection-end-column="73" />
+            <state relative-caret-position="-20">
+              <caret line="54" column="17" selection-start-line="54" selection-start-column="17" selection-end-line="54" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -105,8 +107,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/GUI/TuringPanel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2115">
-              <caret line="155" column="21" selection-start-line="155" selection-start-column="21" selection-end-line="155" selection-end-column="21" />
+            <state relative-caret-position="250">
+              <caret line="126" column="56" selection-start-line="126" selection-start-column="56" selection-end-line="126" selection-end-column="56" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -127,10 +129,7 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>receive</find>
-      <find>thread</find>
       <find>Closed Channe</find>
-      <find>logout</find>
       <find>Files</find>
       <find>operation</find>
       <find>Utils.appendToPane(pane,log,Color.RED,true);</find>
@@ -157,6 +156,9 @@
       <find>case FILE_LIST</find>
       <find>System.out</find>
       <find>configureblock</find>
+      <find>LOGIN</find>
+      <find>logout</find>
+      <find>LOGOUT</find>
     </findStrings>
     <replaceStrings>
       <replace>clientFiles</replace>
@@ -205,7 +207,6 @@
         <option value="$PROJECT_DIR$/src/GUI/InvitationPanel.java" />
         <option value="$PROJECT_DIR$/src/GUI/CreationPanel.java" />
         <option value="$PROJECT_DIR$/src/GUI/LoginPanel.java" />
-        <option value="$PROJECT_DIR$/src/GUI/MyFrame.java" />
         <option value="$PROJECT_DIR$/src/GUI/ServerPanel.java" />
         <option value="$PROJECT_DIR$/src/Client/ChatTask.java" />
         <option value="$PROJECT_DIR$/client_files/a/mariottide/mariottide2.txt" />
@@ -221,10 +222,11 @@
         <option value="$PROJECT_DIR$/src/Utils/opCode.java" />
         <option value="$PROJECT_DIR$/src/Client/InviteTask.java" />
         <option value="$PROJECT_DIR$/src/Client/MainClient.java" />
-        <option value="$PROJECT_DIR$/src/GUI/TuringPanel.java" />
-        <option value="$PROJECT_DIR$/src/Utils/Utils.java" />
         <option value="$PROJECT_DIR$/src/GUI/ManagePanel.java" />
+        <option value="$PROJECT_DIR$/src/Utils/Utils.java" />
         <option value="$PROJECT_DIR$/src/Server/MainServer.java" />
+        <option value="$PROJECT_DIR$/src/GUI/TuringPanel.java" />
+        <option value="$PROJECT_DIR$/src/GUI/MyFrame.java" />
       </list>
     </option>
   </component>
@@ -244,6 +246,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -260,6 +264,12 @@
               <item name="TURING" type="b2602c69:ProjectViewProjectNode" />
               <item name="TURING" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="TURING" type="b2602c69:ProjectViewProjectNode" />
+              <item name="TURING" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="Client" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="TURING" type="b2602c69:ProjectViewProjectNode" />
@@ -283,8 +293,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -312,7 +320,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Compound.2 Clients">
+  <component name="RunManager" selected="Compound.Client - Server">
     <configuration name="Client 2" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Client.MainClient" />
       <module name="TURING" />
@@ -417,7 +425,13 @@
       <workItem from="1551447328405" duration="4297000" />
       <workItem from="1551451806803" duration="1180000" />
       <workItem from="1551453536699" duration="287000" />
-      <workItem from="1551456821961" duration="185000" />
+      <workItem from="1551456821961" duration="305000" />
+      <workItem from="1552494178900" duration="1918000" />
+      <workItem from="1557935812677" duration="160000" />
+      <workItem from="1558622511966" duration="228000" />
+      <workItem from="1558624601744" duration="3000" />
+      <workItem from="1558624608659" duration="72000" />
+      <workItem from="1558624790128" duration="2583000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1546715215223</created>
@@ -503,11 +517,18 @@
       <option name="project" value="LOCAL" />
       <updated>1551453810406</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="01-03-2019 17:16 - &#10; - Eliminata parte di codice inutile riguardante la vecchia gestione del socket per gli inviti nel server&#10; - Corretto possibile bug per cui le socket degli inviti associate ai client venivano configurate in modalità bloccante">
+      <created>1551457074251</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1551457074251</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="197268000" />
+    <option name="totallyTimeSpent" value="202352000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -519,7 +540,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="785" extended-state="6" />
+    <frame x="0" y="23" width="1440" height="789" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Capture Tool" order="0" />
@@ -527,14 +548,14 @@
       <window_info id="UI Designer" order="2" />
       <window_info id="Image Layers" order="3" />
       <window_info id="Favorites" order="4" sideWeight="0.5010707" side_tool="true" weight="0.24964234" />
-      <window_info content_ui="combo" id="Project" order="5" sideWeight="0.49892932" visible="true" weight="0.25035766" />
+      <window_info content_ui="combo" id="Project" order="5" sideWeight="0.49892932" visible="true" weight="0.27181688" />
       <window_info id="Structure" order="6" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Event Log" order="0" sideWeight="0.5028612" side_tool="true" weight="0.32611832" />
+      <window_info anchor="bottom" id="Event Log" order="0" sideWeight="0.5028612" side_tool="true" weight="0.3252149" />
       <window_info anchor="bottom" id="Version Control" order="1" weight="0.32900432" />
       <window_info anchor="bottom" id="Terminal" order="2" />
       <window_info anchor="bottom" id="Message" order="3" />
       <window_info anchor="bottom" id="Find" order="4" weight="0.32467532" />
-      <window_info active="true" anchor="bottom" id="Run" order="5" sideWeight="0.49713877" visible="true" weight="0.31746033" />
+      <window_info active="true" anchor="bottom" id="Run" order="5" sideWeight="0.49713877" visible="true" weight="0.31707317" />
       <window_info anchor="bottom" id="Debug" order="6" weight="0.3968254" />
       <window_info anchor="bottom" id="Cvs" order="7" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="8" weight="0.4" />
@@ -618,7 +639,8 @@
     <MESSAGE value="26-02-2019 16:14 - &#10; - Finished documentation and code comments" />
     <MESSAGE value="26-02-2019 16:25 - &#10; - Finished documentation and code comments" />
     <MESSAGE value="01-03-2019 16:22 - &#10; - Corretto bug su 'Files.createFile' nella procedura &quot;Utils.transferFromSection&quot;&#10; - Corretto bug sull'associazione ad un client del socket degli inviti nel server. Ora il socket viene registrato al selettore e dopo aver mandato una richiesta di SET_INVITATION_SOCK, viene associato al client e tolto dal selettore" />
-    <option name="LAST_COMMIT_MESSAGE" value="01-03-2019 16:22 - &#10; - Corretto bug su 'Files.createFile' nella procedura &quot;Utils.transferFromSection&quot;&#10; - Corretto bug sull'associazione ad un client del socket degli inviti nel server. Ora il socket viene registrato al selettore e dopo aver mandato una richiesta di SET_INVITATION_SOCK, viene associato al client e tolto dal selettore" />
+    <MESSAGE value="01-03-2019 17:16 - &#10; - Eliminata parte di codice inutile riguardante la vecchia gestione del socket per gli inviti nel server&#10; - Corretto possibile bug per cui le socket degli inviti associate ai client venivano configurate in modalità bloccante" />
+    <option name="LAST_COMMIT_MESSAGE" value="01-03-2019 17:16 - &#10; - Eliminata parte di codice inutile riguardante la vecchia gestione del socket per gli inviti nel server&#10; - Corretto possibile bug per cui le socket degli inviti associate ai client venivano configurate in modalità bloccante" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="antWorkspaceConfiguration">
@@ -802,28 +824,8 @@
     <entry file="file://$PROJECT_DIR$/../esercizi/Calcolo PiGreco/src/LeibnizPi.java">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/LoginPanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="296">
-          <caret line="23" lean-forward="true" selection-start-line="23" selection-end-line="23" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/.gitattributes">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/ServerPanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="14" column="52" selection-start-line="14" selection-start-column="52" selection-end-line="14" selection-end-column="52" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/client_files/a/mariottide/mariottide2.txt" />
     <entry file="file://$PROJECT_DIR$/client_files/a/mario/mario1.txt" />
@@ -840,23 +842,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="149">
           <caret line="98" column="17" selection-start-line="98" selection-start-column="17" selection-end-line="98" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/MyFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="78" selection-start-line="13" selection-start-column="78" selection-end-line="13" selection-end-column="78" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/frameCode.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="54" selection-start-line="13" selection-start-column="54" selection-end-line="13" selection-end-column="54" />
         </state>
       </provider>
     </entry>
@@ -980,16 +965,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/CreationPanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="231">
-          <caret line="102" column="47" selection-start-line="102" selection-start-column="47" selection-end-line="102" selection-end-column="47" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Client/InviteTask.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="194">
@@ -1000,10 +975,69 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/CreationPanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1530">
+          <caret line="102" column="47" selection-start-line="102" selection-start-column="47" selection-end-line="102" selection-end-column="47" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/GUI/InvitationPanel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="151">
+        <state relative-caret-position="166">
           <caret line="26" column="54" lean-forward="true" selection-start-line="26" selection-start-column="54" selection-end-line="26" selection-end-column="54" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/ServerPanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="52" selection-start-line="14" selection-start-column="52" selection-end-line="14" selection-end-column="52" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/frameCode.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="12" selection-start-line="5" selection-start-column="12" selection-end-line="5" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="23" column="4" selection-start-line="23" selection-start-column="4" selection-end-line="23" selection-end-column="4" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/MyFrame.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="263">
+          <caret line="55" lean-forward="true" selection-start-line="55" selection-end-line="55" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#2130#2131#0" expanded="true" />
+            <element signature="e#2161#2162#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Server/MainServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3332">
+          <caret line="317" column="33" selection-start-line="317" selection-start-column="33" selection-end-line="317" selection-end-column="33" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -1012,8 +1046,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Utils/Utils.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="93">
-          <caret line="152" column="34" selection-start-line="152" selection-start-column="34" selection-end-line="152" selection-end-column="34" />
+        <state relative-caret-position="938">
+          <caret line="365" column="5" selection-start-line="365" selection-start-column="5" selection-end-line="365" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#writeN#0;class#Utils#0" />
@@ -1021,10 +1055,8 @@
             <element signature="method#sendLength#0;class#Utils#0" />
             <element signature="method#recvBytes#0;class#Utils#0" />
             <element signature="method#getPath#0;class#Utils#0" />
+            <element signature="docComment;method#deleteDirectory#0;class#Utils#0" />
             <element signature="method#deleteDirectory#0;class#Utils#0" />
-            <element signature="method#showPreviousFrame#0;class#Utils#0" />
-            <element signature="method#showNextFrame#0;class#Utils#0" />
-            <element signature="method#appendToPane#0;class#Utils#0" />
             <element signature="method#printTimeStamp#0;class#Utils#0" />
             <element signature="method#printInvite#0;class#Utils#0" />
             <element signature="method#sendChatMessage#0;class#Utils#0" />
@@ -1032,40 +1064,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6345">
-          <caret line="438" column="25" selection-start-line="438" selection-start-column="25" selection-end-line="438" selection-end-column="25" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2595">
-          <caret line="180" column="73" selection-start-line="180" selection-start-column="73" selection-end-line="180" selection-end-column="73" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/GUI/TuringPanel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2115">
-          <caret line="155" column="21" selection-start-line="155" selection-start-column="21" selection-end-line="155" selection-end-column="21" />
+        <state relative-caret-position="250">
+          <caret line="126" column="56" selection-start-line="126" selection-start-column="56" selection-end-line="126" selection-end-column="56" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Server/MainServer.java">
+    <entry file="file://$PROJECT_DIR$/src/Client/MainClient.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="263" column="35" selection-start-line="263" selection-start-column="35" selection-end-line="263" selection-end-column="35" />
+        <state relative-caret-position="-20">
+          <caret line="54" column="17" selection-start-line="54" selection-start-column="17" selection-end-line="54" selection-end-column="17" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/LoginPanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="23" selection-start-line="23" selection-end-line="23" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

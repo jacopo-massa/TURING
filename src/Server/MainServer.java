@@ -255,7 +255,7 @@ public class MainServer
                                 /* salvo il socket che userà il client per ricevere gli inviti */
                                 userInfo.setInviteSocketChannel(clientSocketChannel);
 
-                                log = "New connection is for invitation";
+                                log = "New connection (invitation)";
                                 Utils.appendToPane(pane,log+"\n",Color.GREEN,false);
                                 System.out.println(log);
 
@@ -307,6 +307,8 @@ public class MainServer
                                         // decremento il numero di collaboratori sul file
                                         fileInfo.decCounterEditors();
                                     }
+
+                                    Utils.printLog(usr,op_in.getCode(),opCode.OP_OK);
 
                                     //chiudo le due socket del client
                                     key.cancel();

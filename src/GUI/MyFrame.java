@@ -1,8 +1,9 @@
 package GUI;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 public class MyFrame extends JFrame
 {
@@ -51,20 +52,10 @@ public class MyFrame extends JFrame
         this.pack();
 
         //imposto posizione della finestra
-        Point location;
-        if(oldFrame != null && oldFrame.isVisible())
-        {
-            location = oldFrame.getLocationOnScreen();
+        if(oldFrame != null)
             oldFrame.setVisible(false);
-        }
-        else
-        {
-            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-            location = new Point(
-                    (int) (dimension.getWidth() - this.getWidth()) / 2,
-                    (int) (dimension.getHeight() - this.getHeight()) / 2);
-        }
-        this.setLocation(location);
+
+        this.setLocationRelativeTo(null);
 
         //all'uscita dalla finestra, chiude il processo con System Exit.
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
