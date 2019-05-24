@@ -36,6 +36,7 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
         this.psw = MainClient.password;
         ArrayList<Message> pendingInvitations = MainClient.pendingInvitations;
 
+
         this.setLayout(new BorderLayout());
 
         /* --- WEST PANEL --- */

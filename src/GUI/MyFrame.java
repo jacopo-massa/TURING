@@ -1,5 +1,7 @@
 package GUI;
 
+import Client.MainClient;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
@@ -12,7 +14,18 @@ public class MyFrame extends JFrame
 
     public MyFrame(MyFrame oldFrame, frameCode frame)
     {
-        super("TURING " + ( (frame == frameCode.SERVER) ? "SERVER" : "CLIENT"));
+        super();
+        String title = "TURING ";
+        if(frame == frameCode.SERVER)
+            title += "SERVER";
+        else if(frame == frameCode.LOGIN)
+            title += "CLIENT";
+        else
+            title += "CLIENT - " + MainClient.username;
+
+        //super("TURING " + ( (frame == frameCode.SERVER) ? "SERVER" : "CLIENT"));
+
+        this.setTitle(title);
         this.oldFrame = oldFrame;
         Container c = this.getContentPane();
 
