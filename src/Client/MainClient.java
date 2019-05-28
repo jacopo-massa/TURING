@@ -164,7 +164,7 @@ public class MainClient
 
         try
         {
-            Registry registry = LocateRegistry.getRegistry(Utils.REGISTRATION_PORT);
+            Registry registry = LocateRegistry.getRegistry(Utils.ADDRESS, Utils.REGISTRATION_PORT);
             remote = registry.lookup("TURING-SERVER");
             registration = (IntRegistration) remote;
         }

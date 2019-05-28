@@ -73,7 +73,7 @@ public class MainServer
             IntRegistration stub = (IntRegistration) UnicastRemoteObject.exportObject(registeredUsers,0);
 
             LocateRegistry.createRegistry(Utils.REGISTRATION_PORT);
-            Registry r=LocateRegistry.getRegistry(Utils.REGISTRATION_PORT);
+            Registry r = LocateRegistry.getRegistry(Utils.ADDRESS, Utils.REGISTRATION_PORT);
 
             r.rebind("TURING-SERVER",stub);
         }

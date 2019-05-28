@@ -58,11 +58,13 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
 
 
         JPanel westSouthPanel = new JPanel();
-        westSouthPanel.setLayout(new GridLayout(1,2));
-        sendArea = new JTextField(15);
+        //westSouthPanel.setLayout(new GridLayout(1,2));
+        westSouthPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
+        sendArea = new JTextField(26);
         sendArea.setCaret(new DefaultCaret());
         sendArea.addKeyListener(this);
         JButton sendButton = new JButton("Invia");
+        //sendButton.setPreferredSize(new Dimension(10,10));
 
         westPanel.add(scrollPane,BorderLayout.WEST);
         westSouthPanel.add(sendArea);
