@@ -1,12 +1,12 @@
 package GUI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-
+import Client.MainClient;
 import Utils.Utils;
 
-import Client.MainClient;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class LoginPanel extends JPanel implements ActionListener
 {
@@ -15,20 +15,21 @@ public class LoginPanel extends JPanel implements ActionListener
 
     LoginPanel()
     {
-        this.setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout(10,5));
         JPanel northPanel = new JPanel();
         JPanel centerPanel = new JPanel();
         JPanel southPanel = new JPanel();
 
-        northPanel.add(new JLabel("Benvenuto in TURING!"));
+        //northPanel.add(new JLabel("Benvenuto in TURING!"));
+        northPanel.add(new JLabel(new ImageIcon("turing.png")));
 
         centerPanel.setLayout(new GridLayout(2,2));
 
-        centerPanel.add(new JLabel("Username: "));
+        centerPanel.add(new JLabel("Username: ",JLabel.CENTER));
         username = new JTextField();
         centerPanel.add(username);
 
-        centerPanel.add(new JLabel("Password: "));
+        centerPanel.add(new JLabel("Password: ",JLabel.CENTER));
         password = new JPasswordField();
         centerPanel.add(password);
 
@@ -80,7 +81,7 @@ public class LoginPanel extends JPanel implements ActionListener
                             break;
 
                         case OP_FAIL:
-                            JOptionPane.showMessageDialog(this, "Errore durante la registrazione!", "ERROR", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(this, "Errore durante la registrazione \nNon riesco a contattare il server!", "ERROR", JOptionPane.ERROR_MESSAGE);
                             break;
                     }
                 }
