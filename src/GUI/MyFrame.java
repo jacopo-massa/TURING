@@ -64,11 +64,11 @@ public class MyFrame extends JFrame
         //minimizzo la dimensione della finestra
         this.pack();
 
+        this.setLocationRelativeTo(oldFrame);
+
         //imposto posizione della finestra
         if(oldFrame != null)
             oldFrame.setVisible(false);
-
-        this.setLocationRelativeTo(null);
 
         //all'uscita dalla finestra, chiude il processo con System Exit.
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
