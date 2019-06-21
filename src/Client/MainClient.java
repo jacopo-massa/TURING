@@ -1,8 +1,8 @@
 package Client;
 
+import GUI.FrameCode;
 import GUI.MyFrame;
 import GUI.TuringPanel;
-import GUI.frameCode;
 import Utils.*;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class MainClient
     public static void main(String[] args)
     {
         //creo il frame di login
-        new MyFrame(null, frameCode.LOGIN);
+        new MyFrame(null, FrameCode.LOGIN);
 
         /* imposto una funzione di cleanup che elimina i file dell'utente
            alla terminazione (anche involontaria) del client
@@ -95,24 +95,24 @@ public class MainClient
      * @return esito della richiesta, in caso di ricezione andata a buon fine
      *         OP_FAIL altrimenti
      */
-    public static opCode getAnswer()
+    public static OpCode getAnswer()
     {
-        opCode answerCode;
+        OpCode answerCode;
         try
         {
             byte[] answerBytes = Utils.recvBytes(clientSocketChannel);
 
             if(answerBytes.length == 0)
-                answerCode = opCode.OP_FAIL;
+                answerCode = OpCode.OP_FAIL;
             else
-                answerCode = opCode.valueOf(new String(answerBytes));
+                answerCode = OpCode.valueOf(new String(answerBytes));
 
         }
         catch (IOException | NullPointerException e)
         {
             System.err.println("Error in reading operation code result");
             e.printStackTrace();
-            answerCode = opCode.OP_FAIL;
+            answerCode = OpCode.OP_FAIL;
         }
 
         return answerCode;
@@ -157,7 +157,7 @@ public class MainClient
      *      ERR_USER_ALREADY_LOGGED, se esiste già un utente registrato con lo stesso username
      *      OP_FAIL in caso di errore
      */
-    public static opCode register()
+    public static OpCode register()
     {
         IntRegistration registration;
         Remote remote;
@@ -172,7 +172,7 @@ public class MainClient
         {
             System.err.println("Error in invoking registry");
             e.printStackTrace();
-            return opCode.OP_FAIL;
+            return OpCode.OP_FAIL;
         }
 
         try
@@ -183,16 +183,16 @@ public class MainClient
                    e risultare "online"
                  */
                 loginUser();
-                return opCode.OP_OK;
+                return OpCode.OP_OK;
             }
             else
-                return opCode.ERR_USER_ALREADY_LOGGED;
+                return OpCode.ERR_USER_ALREADY_LOGGED;
         }
         catch(RemoteException | NullPointerException e)
         {
             System.err.println("Error in invoking method \"registerUser\" " + e.toString());
             e.printStackTrace();
-            return opCode.OP_FAIL;
+            return OpCode.OP_FAIL;
         }
     }
 
@@ -203,26 +203,26 @@ public class MainClient
      * @return esito della richiesta di login,
      *         OP_FAIL in caso di errore
      */
-    public static opCode loginUser()
+    public static OpCode loginUser()
     {
-        opCode answerCode;
+        OpCode answerCode;
 
         clientSocketChannel = openConnection(Utils.CLIENT_PORT);
 
         if(clientSocketChannel == null)
-            answerCode = opCode.OP_FAIL;
+            answerCode = OpCode.OP_FAIL;
         else
         {
             //effettuo la richiesta di login
             Operation request = new Operation(username);
             request.setPassword(password);
-            request.setCode(opCode.LOGIN);
+            request.setCode(OpCode.LOGIN);
 
             sendReq(clientSocketChannel,request);
             answerCode = getAnswer();
 
             //se il login è andato a buon fine, inizializzo il thread per ricevere gli inviti
-            if(answerCode == opCode.OP_OK)
+            if(answerCode == OpCode.OP_OK)
             {
                 // apro un nuovo socket per ricevere gli inviti
                 inviteSocketChannel = openConnection(Utils.CLIENT_PORT);
@@ -231,10 +231,10 @@ public class MainClient
                     //in caso di errore chiudo tutte le socket
                     try {clientSocketChannel.close();}
                     catch (IOException e) {e.printStackTrace();}
-                    return opCode.OP_FAIL;
+                    return OpCode.OP_FAIL;
                 }
 
-                request.setCode(opCode.SET_INVITATION_SOCK);
+                request.setCode(OpCode.SET_INVITATION_SOCK);
                 sendReq(inviteSocketChannel, request);
 
                 //creo il thread per la ricezione degli inviti
@@ -242,7 +242,7 @@ public class MainClient
                 inviteThread.start();
 
                 //richiedo e scarico la lista di eventuali inviti ricevuti mentre ero offline
-                request.setCode(opCode.PENDING_INVITATIONS);
+                request.setCode(OpCode.PENDING_INVITATIONS);
                 sendReq(clientSocketChannel,request);
 
                 try
@@ -258,7 +258,7 @@ public class MainClient
                 catch(ClassNotFoundException | IOException | NullPointerException e)
                 {
                     System.err.println("Error in downloading pending invites");
-                    answerCode = opCode.OP_FAIL;
+                    answerCode = OpCode.OP_FAIL;
                 }
             }
         }
@@ -272,11 +272,11 @@ public class MainClient
      *
      * @return OP_OK
      */
-    public static opCode logoutUser()
+    public static OpCode logoutUser()
     {
         Operation request = new Operation(username);
         request.setPassword(password);
-        request.setCode(opCode.LOGOUT);
+        request.setCode(OpCode.LOGOUT);
 
         sendReq(clientSocketChannel,request);
 
@@ -315,7 +315,7 @@ public class MainClient
             chatThread.interrupt();
 
 
-        return opCode.OP_OK;
+        return OpCode.OP_OK;
     }
 
     /**
@@ -326,11 +326,11 @@ public class MainClient
      * @return esito della richiesta di creazione,
      *         OP_FAIL in caso di errore
      */
-    public static opCode createDocument(String name, int nsection)
+    public static OpCode createDocument(String name, int nsection)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
-        request.setCode(opCode.CREATE);
+        request.setCode(OpCode.CREATE);
 
         request.setFilename(name);
         request.setSection(nsection);
@@ -352,7 +352,7 @@ public class MainClient
      * @return esito della richiesta di visualizzazione/modifica
      *         OP_FAIL in caso di errore
      */
-    public static opCode manageDocument(opCode code, String name, String owner, int nsection)
+    public static OpCode manageDocument(OpCode code, String name, String owner, int nsection)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
@@ -362,10 +362,10 @@ public class MainClient
         request.setSection(nsection);
 
         sendReq(clientSocketChannel,request);
-        opCode answerCode = getAnswer();
+        OpCode answerCode = getAnswer();
 
         //se voglio modificare una sezione, e la richiesta è andata a buon fine...
-        if(code == opCode.EDIT && answerCode == opCode.OP_OK)
+        if(code == OpCode.EDIT && answerCode == OpCode.OP_OK)
         {
             String address = null;
 
@@ -379,7 +379,7 @@ public class MainClient
             catch(IOException e)
             {
                 System.err.println("Can't download multicast address");
-                answerCode = opCode.OP_FAIL;
+                answerCode = OpCode.OP_FAIL;
             }
 
             /* creo il thread che si occuperò della chat con gli altri utenti
@@ -400,17 +400,17 @@ public class MainClient
      * @param section
      * @return
      */
-    public static opCode recvSection(String name, String owner, int section)
+    public static OpCode recvSection(String name, String owner, int section)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
-        request.setCode(opCode.SECTION_RECEIVE);
+        request.setCode(OpCode.SECTION_RECEIVE);
         request.setFilename(name);
         request.setOwner(owner);
         request.setSection(section);
         sendReq(clientSocketChannel,request);
 
-        opCode answerCode;
+        OpCode answerCode;
 
         try
         {
@@ -418,7 +418,7 @@ public class MainClient
             answerCode = getAnswer();
         }
         catch(IOException ioe)
-        { answerCode = opCode.OP_FAIL; }
+        { answerCode = OpCode.OP_FAIL; }
 
         return answerCode;
 
@@ -436,18 +436,18 @@ public class MainClient
      * @return esito della richiesta di fine editing e di upload,
      *         OP_FAIL in caso di errore
      */
-    public static opCode endEditDocument(String name, String owner, int section)
+    public static OpCode endEditDocument(String name, String owner, int section)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
-        request.setCode(opCode.END_EDIT);
+        request.setCode(OpCode.END_EDIT);
         request.setFilename(name);
         request.setOwner(owner);
         request.setSection(section);
 
         sendReq(clientSocketChannel,request);
 
-        opCode answerCode;
+        OpCode answerCode;
 
         try
         {
@@ -462,7 +462,7 @@ public class MainClient
             Files.deleteIfExists(Paths.get(filepath));
         }
         catch(IOException ioe)
-        { answerCode = opCode.OP_FAIL; }
+        { answerCode = OpCode.OP_FAIL; }
 
         return answerCode;
     }
@@ -475,11 +475,11 @@ public class MainClient
      *
      * @return esito della richiesta di invito
      */
-    public static opCode invite(String filename, String collaborator)
+    public static OpCode invite(String filename, String collaborator)
     {
         Operation request = new Operation(username);
         request.setPassword(password);
-        request.setCode(opCode.INVITE);
+        request.setCode(OpCode.INVITE);
         request.setFilename(filename);
         request.setOwner(collaborator);
 

@@ -12,18 +12,18 @@ public class MyFrame extends JFrame
     private MyFrame oldFrame;
     private JPanel p;
 
-    public MyFrame(MyFrame oldFrame, frameCode frame)
+    public MyFrame(MyFrame oldFrame, FrameCode frame)
     {
         super();
         String title = "TURING ";
-        if(frame == frameCode.SERVER)
+        if(frame == FrameCode.SERVER)
             title += "SERVER";
-        else if(frame == frameCode.LOGIN)
+        else if(frame == FrameCode.LOGIN)
             title += "CLIENT";
         else
             title += "CLIENT - " + MainClient.username;
 
-        //super("TURING " + ( (frame == frameCode.SERVER) ? "SERVER" : "CLIENT"));
+        //super("TURING " + ( (frame == FrameCode.SERVER) ? "SERVER" : "CLIENT"));
 
         this.setTitle(title);
         this.oldFrame = oldFrame;

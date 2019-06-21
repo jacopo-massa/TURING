@@ -1,8 +1,8 @@
 package Server;
 
+import GUI.FrameCode;
 import GUI.MyFrame;
 import GUI.ServerPanel;
-import GUI.frameCode;
 import Utils.*;
 
 import javax.swing.*;
@@ -59,7 +59,7 @@ public class MainServer
         ConcurrentHashMap<String, FileInfo> userFiles = new ConcurrentHashMap<>();
 
         // finestra di log degli eventi all'interno del server
-        new MyFrame(null, frameCode.SERVER);
+        new MyFrame(null, FrameCode.SERVER);
 
         // Stringa contenente il messaggio di log da visualizzare nella finestra degli eventi.
         String log;
@@ -164,7 +164,7 @@ public class MainServer
                     {
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
                         Operation op_in;
-                        opCode answerCode = opCode.OP_FAIL;
+                        OpCode answerCode = OpCode.OP_FAIL;
 
                         // leggo la richiesta del client
                         try
@@ -181,7 +181,7 @@ public class MainServer
                             e.printStackTrace();
 
                             // in caso di errore sovrascrivo il codice con OP_FAIL
-                            answerCode = opCode.OP_FAIL;
+                            answerCode = OpCode.OP_FAIL;
                             key.attach(answerCode);
                             key.interestOps(SelectionKey.OP_WRITE);
                             continue;
@@ -197,7 +197,7 @@ public class MainServer
                         String psw = op_in.getPassword();
 
                         /* controllo il tipo di richiesta ricevuta.
-                           Per i vari codici operazione vedi la enum 'opCode'
+                           Per i vari codici operazione vedi la enum 'OpCode'
                           */
                         switch (op_in.getCode())
                         {
@@ -212,7 +212,7 @@ public class MainServer
                                 // pulisco la lista degli inviti pendenti
                                 userInfo.clearPendingInvites();
 
-                                answerCode = opCode.OP_OK;
+                                answerCode = OpCode.OP_OK;
                                 break;
                             }
 
@@ -241,10 +241,10 @@ public class MainServer
                                             namesToSend.add(s + "_" + userFiles.get(s).getNsections());
                                     }
                                     Utils.sendObject(clientSocketChannel, namesToSend);
-                                    answerCode = opCode.OP_OK;
+                                    answerCode = OpCode.OP_OK;
                                 }
                                 catch(IOException ioe)
-                                { answerCode = opCode.OP_FAIL; }
+                                { answerCode = OpCode.OP_FAIL; }
                                 break;
                             }
 
@@ -271,21 +271,21 @@ public class MainServer
                                 UserInfo userInfo = registeredUsers.getUser(usr);
 
                                 if(userInfo == null)
-                                    answerCode = opCode.ERR_USER_UNKNOWN;
+                                    answerCode = OpCode.ERR_USER_UNKNOWN;
                                 else if(!userInfo.getPassword().equals(psw))
-                                    answerCode = opCode.ERR_WRONG_PASSWORD;
+                                    answerCode = OpCode.ERR_WRONG_PASSWORD;
                                 else if(userInfo.isOnline())
-                                    answerCode = opCode.ERR_USER_ALREADY_LOGGED;
+                                    answerCode = OpCode.ERR_USER_ALREADY_LOGGED;
                                 else if(registeredUsers.setStatus(usr,psw,1))
                                 {
                                     /* creo la directory (solo se non esiste già)
                                        che conterrà tutti i file creati da questo utente */
                                     Files.createDirectories(Paths.get(Utils.SERVER_FILES_PATH + usr));
 
-                                    answerCode = opCode.OP_OK;
+                                    answerCode = OpCode.OP_OK;
                                 }
                                 else
-                                    answerCode = opCode.OP_FAIL;
+                                    answerCode = OpCode.OP_FAIL;
                                 break;
                             }
 
@@ -308,7 +308,7 @@ public class MainServer
                                         fileInfo.decCounterEditors();
                                     }
 
-                                    Utils.printLog(usr,op_in.getCode(),opCode.OP_OK);
+                                    Utils.printLog(usr,op_in.getCode(), OpCode.OP_OK);
 
                                     //chiudo le due socket del client
                                     key.cancel();
@@ -328,7 +328,7 @@ public class MainServer
                                 // controllo che non esista un file con lo stesso nome, creato dallo stesso utente
                                 if(userFiles.containsKey(collectionFileName))
                                 {
-                                    answerCode = opCode.ERR_FILE_ALREADY_EXISTS;
+                                    answerCode = OpCode.ERR_FILE_ALREADY_EXISTS;
                                 }
                                 else // se non esiste, aggiungo il file alla collezione gestita dal server
                                 {
@@ -372,12 +372,12 @@ public class MainServer
 
                                         //aggiungo il file alla lista di quelli gestibili dall'utente che l'ha creato
                                         registeredUsers.getUser(usr).addFile(collectionFileName);
-                                        answerCode = opCode.OP_OK;
+                                        answerCode = OpCode.OP_OK;
                                     }
                                     else // se ci sono stati errori, elimino la directory appena creata
                                     {
                                         Utils.deleteDirectory(Utils.getPath(usr,filename,0,true));
-                                        answerCode = opCode.OP_FAIL;
+                                        answerCode = OpCode.OP_FAIL;
                                     }
                                 }
                                 break;
@@ -400,12 +400,12 @@ public class MainServer
                                     /* SHOW_ALL richiede tutte le sezioni (successivamente) , quindi non effettuo
                                        ulteriori controlli sul documento
                                       */
-                                    if(!op_in.getCode().equals(opCode.SHOW_ALL))
+                                    if(!op_in.getCode().equals(OpCode.SHOW_ALL))
                                     {
                                         if(!fileInfo.isLocked(section-1)) //sezione non lockata
                                         {
                                             // se la richiesta è di editing ...
-                                            if(op_in.getCode().equals(opCode.EDIT))
+                                            if(op_in.getCode().equals(OpCode.EDIT))
                                             {
                                                 // ... lock sulla sezione
                                                 fileInfo.lockSection(section-1);
@@ -415,7 +415,7 @@ public class MainServer
                                                 userInfo.setEditingSection(section);
 
                                                 // mando all'utente l'esito positivo della richiesta di EDIT
-                                                Utils.sendBytes(clientSocketChannel, opCode.OP_OK.toString().getBytes());
+                                                Utils.sendBytes(clientSocketChannel, OpCode.OP_OK.toString().getBytes());
 
                                                 // mando all'utente l'indirizzo di multicast associato al file
                                                 Utils.sendBytes(clientSocketChannel,fileInfo.getAddress().getBytes());
@@ -423,16 +423,16 @@ public class MainServer
                                                 // aumento il numero di collaboratori del documento
                                                 fileInfo.incCounterEditors();
                                             }
-                                            answerCode = opCode.OP_OK;
+                                            answerCode = OpCode.OP_OK;
                                         }
                                         else
-                                            answerCode = opCode.SECTION_EDITING;
+                                            answerCode = OpCode.SECTION_EDITING;
                                     }
                                     else
-                                        answerCode = opCode.OP_OK;
+                                        answerCode = OpCode.OP_OK;
                                 }
                                 else
-                                    answerCode = opCode.ERR_PERMISSION_DENIED;
+                                    answerCode = OpCode.ERR_PERMISSION_DENIED;
                                 break;
                             }
 
@@ -451,14 +451,14 @@ public class MainServer
                                     Utils.transferToSection(clientSocketChannel,Utils.getPath(owner,filename,section,true).replaceFirst("./",""));
                                     // segnalo all'utente se tale sezione è in fase di editing
                                     if(userFiles.get(collectionFilename).isLocked(section-1))
-                                        answerCode = opCode.SECTION_EDITING;
+                                        answerCode = OpCode.SECTION_EDITING;
                                     else
-                                        answerCode = opCode.OP_OK;
+                                        answerCode = OpCode.OP_OK;
 
                                 }
                                 catch(IOException ioe)
                                 {
-                                    answerCode = opCode.OP_FAIL;
+                                    answerCode = OpCode.OP_FAIL;
                                 }
                                 break;
                             }
@@ -487,13 +487,13 @@ public class MainServer
                                     // decremento il numero di collaboratori sul file che l'utente stava editando
                                     fileInfo.decCounterEditors();
 
-                                    answerCode = opCode.OP_OK;
+                                    answerCode = OpCode.OP_OK;
                                 }
                                 catch(IOException ioe)
                                 {
                                     System.err.println("Error downloading section " + ioe.toString());
                                     ioe.printStackTrace();
-                                    answerCode = opCode.OP_FAIL;
+                                    answerCode = OpCode.OP_FAIL;
                                     break;
                                 }
                                 break;
@@ -509,10 +509,10 @@ public class MainServer
                                 UserInfo userInfo = registeredUsers.getUser(owner);
 
                                 if(userInfo == null) // utente inesistente
-                                    answerCode = opCode.ERR_USER_UNKNOWN;
+                                    answerCode = OpCode.ERR_USER_UNKNOWN;
                                 else if(userInfo.canEdit(collectionFilename)) // controllo che l'utente non sia già stato invitato
                                 {
-                                    answerCode = opCode.ERR_USER_ALREADY_INVITED;
+                                    answerCode = OpCode.ERR_USER_ALREADY_INVITED;
                                 }
                                 else
                                 {
@@ -530,7 +530,7 @@ public class MainServer
                                         Utils.sendObject(userInfo.getInviteSocketChannel(), invitation);
                                     }
 
-                                    answerCode = opCode.OP_OK;
+                                    answerCode = OpCode.OP_OK;
                                 }
                                 break;
                             }
@@ -547,7 +547,7 @@ public class MainServer
                     else if (key.isWritable()) //sto per scrivere su una socket
                     {
                         SocketChannel clientSocketChannel = (SocketChannel) key.channel();
-                        opCode answerCode = (opCode) key.attachment();
+                        OpCode answerCode = (OpCode) key.attachment();
 
                         // scrivo l'esito della richiesta fatta dall'utente
                         Utils.sendBytes(clientSocketChannel,answerCode.toString().getBytes());

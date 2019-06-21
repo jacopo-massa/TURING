@@ -8,7 +8,7 @@ import java.io.Serializable;
  */
 public class Operation implements Serializable
 {
-    private opCode code;        // codice della richiesta da effettuare
+    private OpCode code;        // codice della richiesta da effettuare
     private String username;    // username dell'utente che effettua la richiesta
     private String password;    // password dell'utente che effettua la richiesta
     private String filename;    // nome del file che si vuole editare/visualizzare o per cui si richiede una collaborazione
@@ -20,11 +20,11 @@ public class Operation implements Serializable
         this.username = username;
     }
 
-    public opCode getCode() {
+    public OpCode getCode() {
         return code;
     }
 
-    public void setCode(opCode code) {
+    public void setCode(OpCode code) {
         this.code = code;
     }
 

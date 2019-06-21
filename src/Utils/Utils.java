@@ -1,9 +1,9 @@
 package Utils;
 
+import GUI.FrameCode;
 import GUI.MyFrame;
 import GUI.ServerPanel;
 import GUI.TuringPanel;
-import GUI.frameCode;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -378,7 +378,7 @@ public class Utils
         currentFrame.dispose();
     }
 
-    public static void showNextFrame(frameCode frame, Component c)
+    public static void showNextFrame(FrameCode frame, Component c)
     {
         //ottengo il frame corrente
         MyFrame oldFrame = (MyFrame) SwingUtilities.getWindowAncestor(c);
@@ -434,7 +434,7 @@ public class Utils
         Utils.appendToPane(TuringPanel.receiveArea, filename + "\n", Color.RED,true);
     }
 
-    public static void printLog(String msg, opCode requestCode, opCode answerCode)
+    public static void printLog(String msg, OpCode requestCode, OpCode answerCode)
     {
         Utils.appendToPane(ServerPanel.logPane, msg, Color.RED,true);
         Utils.appendToPane(ServerPanel.logPane, "  REQUEST: ", Color.BLACK,false);
@@ -442,9 +442,9 @@ public class Utils
         Utils.appendToPane(ServerPanel.logPane, "  RESULT: ", Color.BLACK,false);
 
         Color c;
-        if (answerCode == opCode.OP_OK)
+        if (answerCode == OpCode.OP_OK)
             c = Color.GREEN;
-        else if(answerCode == opCode.OP_FAIL)
+        else if(answerCode == OpCode.OP_FAIL)
             c = Color.RED;
         else
             c = Color.PINK;

@@ -1,10 +1,10 @@
 package GUI;
 
 import Client.MainClient;
+import OpCode;
 import Utils.Message;
 import Utils.Operation;
 import Utils.Utils;
-import Utils.opCode;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
@@ -126,7 +126,7 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                     {
                         case OP_OK:
                         {
-                            //Utils.showNextFrame(frameCode.LOGIN,this);
+                            //Utils.showNextFrame(FrameCode.LOGIN,this);
                             Utils.showPreviousFrame(this);
                             break;
                         }
@@ -146,8 +146,8 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
 
                     Operation request = new Operation(usr);
                     request.setPassword(psw);
-                    request.setCode(opCode.FILE_LIST);
-                    opCode ans;
+                    request.setCode(OpCode.FILE_LIST);
+                    OpCode ans;
                     /* se voglio effettuare un invito, mi assicuro di ricevere solo i documenti
                        di cui sono proprietario, impostanto owner = username, come si aspetta il server
                       */
@@ -167,12 +167,12 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                     {
                         System.err.println("Can't download file list");
                         ex.printStackTrace();
-                        ans = opCode.OP_FAIL;
+                        ans = OpCode.OP_FAIL;
                     }
 
                     ans = MainClient.getAnswer();
 
-                    if(ans != opCode.OP_OK)
+                    if(ans != OpCode.OP_OK)
                     {
                         JOptionPane.showMessageDialog(this,"Lista dei file gestibili non scaricata correttamente","WARNING",JOptionPane.WARNING_MESSAGE);
                         break;
@@ -186,7 +186,7 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                 }
                 case "CREATE":
                 {
-                    Utils.showNextFrame(frameCode.valueOf(cmd),this);
+                    Utils.showNextFrame(FrameCode.valueOf(cmd),this);
                     break;
                 }
 
