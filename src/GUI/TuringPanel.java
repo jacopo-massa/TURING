@@ -1,8 +1,8 @@
 package GUI;
 
 import Client.MainClient;
-import OpCode;
 import Utils.Message;
+import Utils.OpCode;
 import Utils.Operation;
 import Utils.Utils;
 

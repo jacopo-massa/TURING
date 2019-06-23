@@ -8,6 +8,9 @@
   <component name="ChangeListManager">
     <list default="true" id="0a4142e1-e9cd-428d-8f0a-bb7982e34feb" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GUI/ManagePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI/ManagePanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GUI/frameCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI/frameCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Utils/opCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Utils/opCode.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -44,11 +47,32 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/GUI/MyFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
+            <state relative-caret-position="105">
               <caret line="12" column="21" selection-start-line="12" selection-start-column="21" selection-end-line="12" selection-end-column="21" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Utils/OpCode.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="21" column="37" selection-start-line="21" selection-start-column="37" selection-end-line="21" selection-end-column="37" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="300">
+              <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -150,7 +174,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/User.java" />
         <option value="$PROJECT_DIR$/src/TuringFile.java" />
         <option value="$PROJECT_DIR$/src/FilePanel.java" />
         <option value="$PROJECT_DIR$/src/RegisteredUsers.java" />
@@ -192,15 +215,16 @@
         <option value="$PROJECT_DIR$/src/Server/RegisteredUsers.java" />
         <option value="$PROJECT_DIR$/src/Server/FileInfo.java" />
         <option value="$PROJECT_DIR$/src/Server/UserInfo.java" />
-        <option value="$PROJECT_DIR$/src/Utils/opCode.java" />
         <option value="$PROJECT_DIR$/src/Client/InviteTask.java" />
-        <option value="$PROJECT_DIR$/src/GUI/ManagePanel.java" />
         <option value="$PROJECT_DIR$/src/GUI/TuringPanel.java" />
         <option value="$PROJECT_DIR$/src/Client/MainClient.java" />
         <option value="$PROJECT_DIR$/src/Server/MainServer.java" />
         <option value="$PROJECT_DIR$/src/Utils/Utils.java" />
         <option value="$PROJECT_DIR$/src/GUI/LoginPanel.java" />
         <option value="$PROJECT_DIR$/src/GUI/MyFrame.java" />
+        <option value="$PROJECT_DIR$/src/Utils/opCode.java" />
+        <option value="$PROJECT_DIR$/src/Utils/OpCode.java" />
+        <option value="$PROJECT_DIR$/src/GUI/ManagePanel.java" />
       </list>
     </option>
   </component>
@@ -210,7 +234,7 @@
       <select />
     </treeState>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
+  <component name="ProjectFrameBounds" fullScreen="true">
     <option name="width" value="1440" />
     <option name="height" value="900" />
   </component>
@@ -219,6 +243,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -264,8 +290,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -426,6 +450,8 @@
       <workItem from="1561129559256" duration="274000" />
       <workItem from="1561131730170" duration="344000" />
       <workItem from="1561132237513" duration="85000" />
+      <workItem from="1561133057993" duration="210000" />
+      <workItem from="1561302688887" duration="36000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1546715215223</created>
@@ -560,11 +586,18 @@
       <option name="project" value="LOCAL" />
       <updated>1561132040293</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="TitleCase ai nomi delle enum (FrameCode, OpCode)">
+      <created>1561133247341</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1561133247341</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="209992000" />
+    <option name="totallyTimeSpent" value="210238000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -577,29 +610,30 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Capture Tool" order="0" />
       <window_info id="Designer" order="1" />
       <window_info id="UI Designer" order="2" />
       <window_info id="Image Layers" order="3" />
       <window_info id="Favorites" order="4" sideWeight="0.5010707" side_tool="true" weight="0.24964234" />
-      <window_info content_ui="combo" id="Project" order="5" sideWeight="0.49892932" visible="true" weight="0.32904148" />
+      <window_info active="true" content_ui="combo" id="Project" order="5" sideWeight="0.49892932" visible="true" weight="0.1788269" />
       <window_info id="Structure" order="6" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Event Log" order="0" sideWeight="0.5064378" side_tool="true" weight="0.2759036" />
       <window_info anchor="bottom" id="Version Control" order="1" weight="0.32900432" />
       <window_info anchor="bottom" id="Terminal" order="2" />
       <window_info anchor="bottom" id="Message" order="3" />
-      <window_info anchor="bottom" id="Find" order="4" weight="0.32467532" />
+      <window_info anchor="bottom" id="Find" order="4" weight="0.32409638" />
       <window_info anchor="bottom" id="Run" order="5" sideWeight="0.49642345" weight="0.3170029" />
       <window_info anchor="bottom" id="Debug" order="6" weight="0.3968254" />
       <window_info anchor="bottom" id="Cvs" order="7" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="8" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="9" weight="0.32756132" />
       <window_info anchor="bottom" id="Docker" order="10" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Messages" order="11" weight="0.32178932" />
+      <window_info anchor="bottom" id="Messages" order="11" visible="true" weight="0.32168674" />
       <window_info anchor="bottom" id="Database Changes" order="12" />
       <window_info anchor="bottom" id="Duplicate detector" order="13" weight="0.32756132" />
-      <window_info active="true" anchor="bottom" id="Run Dashboard" order="14" sideWeight="0.49356222" visible="true" weight="0.2759036" />
+      <window_info anchor="bottom" id="Run Dashboard" order="14" sideWeight="0.49356222" weight="0.2759036" />
       <window_info anchor="right" id="Palette" order="0" />
       <window_info anchor="right" id="Maven Projects" order="1" />
       <window_info anchor="right" id="Database" order="2" weight="0.3297568" />
@@ -682,7 +716,8 @@
     <MESSAGE value="Testati i client su macchine diverse (sempre rete locale).&#10;Modificato lo stub e il getRegistry in modo che funzioni non solo su localhost" />
     <MESSAGE value="Aggiunto logo iniziale" />
     <MESSAGE value="Modificata posizione di apparizione dei diversi frames (ora coincide con il centro del frame precente)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Modificata posizione di apparizione dei diversi frames (ora coincide con il centro del frame precente)" />
+    <MESSAGE value="TitleCase ai nomi delle enum (FrameCode, OpCode)" />
+    <option name="LAST_COMMIT_MESSAGE" value="TitleCase ai nomi delle enum (FrameCode, OpCode)" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="antWorkspaceConfiguration">
@@ -912,20 +947,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/frameCode.java">
+    <entry file="file://$PROJECT_DIR$/src/GUI/FrameCode.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
           <caret line="5" column="12" selection-start-line="5" selection-start-column="12" selection-end-line="5" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="23" column="4" selection-start-line="23" selection-start-column="4" selection-end-line="23" selection-end-column="4" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1016,13 +1041,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Utils/opCode.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="104">
-          <caret line="18" column="109" selection-start-line="18" selection-start-column="109" selection-end-line="18" selection-end-column="109" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Utils/Operation.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="194">
@@ -1062,7 +1080,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/GUI/MyFrame.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
+        <state relative-caret-position="105">
           <caret line="12" column="21" selection-start-line="12" selection-start-column="21" selection-end-line="12" selection-end-column="21" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -1096,6 +1114,23 @@
             <element signature="method#printTimeStamp#0;class#Utils#0" />
             <element signature="method#printInvite#0;class#Utils#0" />
             <element signature="method#sendChatMessage#0;class#Utils#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Utils/OpCode.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="37" selection-start-line="21" selection-start-column="37" selection-end-line="21" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GUI/ManagePanel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>

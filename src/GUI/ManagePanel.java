@@ -1,7 +1,7 @@
 package GUI;
 
 import Client.MainClient;
-import OpCode;
+import Utils.OpCode;
 import Utils.Utils;
 
 import javax.swing.*;

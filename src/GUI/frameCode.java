@@ -3,7 +3,7 @@ package GUI;
 /**
  * enum che rappresenta il tipo di pannello che voglio visualizzare
  */
-public enum frameCode
+public enum FrameCode
 {
     LOGIN,  // pannello per effettuare login/registrazione
     TURING, // pannello principale con i bottoni per le varie operazioni, e l'area per la chat
