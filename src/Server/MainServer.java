@@ -43,7 +43,7 @@ public class MainServer
     }
 
     // collezione contenente gli indirizzi multicast già assegnati
-    static Set<String> usedAddresses = new HashSet<>();
+    static HashMap<String, Boolean> usedAddresses = new HashMap<>();
 
     /**
      * Metodo main del server
@@ -92,9 +92,9 @@ public class MainServer
 
         Runtime.getRuntime().addShutdownHook(
                 new Thread(() -> {
-                    try { Utils.deleteDirectory(Utils.SERVER_FILES_PATH); }
+                    try { Utils.deleteDirectory(Utils.SERVER_DIR_PATH); }
                     catch(IOException ioe)
-                    { System.err.println("Can't delete " + Utils.SERVER_FILES_PATH); }
+                    { System.err.println("Can't delete " + Utils.SERVER_DIR_PATH); }
                 }));
 
         /* Creazione del socket TCP per la ricezione delle richieste dei client
@@ -280,7 +280,7 @@ public class MainServer
                                 {
                                     /* creo la directory (solo se non esiste già)
                                        che conterrà tutti i file creati da questo utente */
-                                    Files.createDirectories(Paths.get(Utils.SERVER_FILES_PATH + usr));
+                                    Files.createDirectories(Paths.get(Utils.SERVER_DIR_PATH + usr));
 
                                     answerCode = OpCode.OP_OK;
                                 }
@@ -355,16 +355,31 @@ public class MainServer
                                     if(!err)
                                     {
                                         //genero un indirizzo di multicast da assegnare al file che sto per creare
-                                        String address;
-                                        do
-                                        { address = generateMulticastAddress(); }
-                                        while(usedAddresses.contains(address));
+
+                                        //ne cerco uno utilizzabile tra quelli precedentemente generati
+                                        String address = null;
+                                        for (Map.Entry<String,Boolean> entry: usedAddresses.entrySet())
+                                        {
+                                            if (entry.getValue() == Boolean.FALSE)
+                                            {
+                                                address = entry.getKey();
+                                                break;
+                                            }
+                                        }
+
+                                        //se non ne trovo uno, lo creo
+                                        if (address == null)
+                                        {
+                                            do
+                                            { address = generateMulticastAddress(); }
+                                            while(usedAddresses.containsKey(address));
+                                        }
 
                                         //creo la struttura dati contenente le info del file
                                         FileInfo fileInfo = new FileInfo(usr,nsections,address);
 
                                         //aggiungo l'indirizzo generato tra quelli in uso
-                                        usedAddresses.add(address);
+                                        usedAddresses.put(address, Boolean.TRUE);
 
                                         fileInfo.setOwner(usr);
                                         userFiles.putIfAbsent(collectionFileName, fileInfo);

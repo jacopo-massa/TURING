@@ -29,8 +29,8 @@ import java.util.Date;
 public class Utils
 {
     // costanti che indicano i path delle home directory dei file nei client / server TURING
-    public static String CLIENT_FILES_PATH = "./client_files/";
-    public static String SERVER_FILES_PATH = "./turing_files/";
+    public static String CLIENT_DIR_PATH = "./client_files/";
+    public static String SERVER_DIR_PATH = "./turing_files/";
 
     /* costanti che indicano l'indirizzo e le porte su cui aprire le socket TCP/UDP per la
        comunicazione tra clients e server
@@ -305,7 +305,7 @@ public class Utils
         byte[] pathBytes = recvBytes(socket);
         String filepath = new String(pathBytes);
 
-        filepath = ((isServer) ? Utils.SERVER_FILES_PATH : Utils.CLIENT_FILES_PATH) + username + "/" + filepath;
+        filepath = ((isServer) ? Utils.SERVER_DIR_PATH : Utils.CLIENT_DIR_PATH) + username + "/" + filepath;
 
         // creo la directory (se non esiste già) che conterrà il file che sto per ricevere
         Files.createDirectories(Paths.get(filepath.substring(0,filepath.lastIndexOf("/"))));
@@ -345,7 +345,7 @@ public class Utils
      */
     public static String getPath(String username, String filename, int section, boolean isServer)
     {
-        return ((isServer) ? SERVER_FILES_PATH : CLIENT_FILES_PATH) +
+        return ((isServer) ? SERVER_DIR_PATH : CLIENT_DIR_PATH) +
                 username + "/" + filename +
                 ((section == 0) ? "" : ("/" + filename + section + ".txt"));
     }

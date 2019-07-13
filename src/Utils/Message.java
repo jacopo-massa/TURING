@@ -10,7 +10,7 @@ import java.util.Date;
 public class Message implements Serializable
 {
     private String sender;  // mittente dell'invito / messaggio
-    private String body;    // noem del file al quale si invita / corpo del messaggio
+    private String body;    // nome del file al quale si invita / corpo del messaggio
     private Date date;      // data e ora dell'invio dell'invito / messaggio
 
     public Message(String sender, String body, Date date)

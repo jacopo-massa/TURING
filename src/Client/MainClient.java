@@ -54,8 +54,8 @@ public class MainClient
                 new Thread(() ->
                 {
                     try
-                    { Utils.deleteDirectory(Utils.CLIENT_FILES_PATH + username); }
-                    catch(IOException ioe) {System.err.println("Can't delete " + Utils.CLIENT_FILES_PATH + username); }
+                    { Utils.deleteDirectory(Utils.CLIENT_DIR_PATH + username); }
+                    catch(IOException ioe) {System.err.println("Can't delete " + Utils.CLIENT_DIR_PATH + username); }
                     logoutUser();
                 }));
     }

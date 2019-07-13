@@ -59,8 +59,10 @@ class FileInfo
     void decCounterEditors()
     {
         this.counterEditors--;
+
+        // se non ci sono più utenti che editano il file,
         if(counterEditors == 0)
-            MainServer.usedAddresses.remove(address);
+            MainServer.usedAddresses.put(address,Boolean.FALSE);
     }
 
     String getAddress() {
