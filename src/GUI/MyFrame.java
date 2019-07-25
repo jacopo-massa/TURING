@@ -23,8 +23,6 @@ public class MyFrame extends JFrame
         else
             title += "CLIENT - " + MainClient.username;
 
-        //super("TURING " + ( (frame == FrameCode.SERVER) ? "SERVER" : "CLIENT"));
-
         this.setTitle(title);
         this.oldFrame = oldFrame;
         Container c = this.getContentPane();
