@@ -58,6 +58,9 @@ public class Utils
         { counter += socket.read(buffer); }
         while(counter < n);
     }
+	
+	private boolean faffreddo = False;
+	private boolean faccaldo = True;
 
 
     /* Utility per la gestione di ricezione / invio di Objects (serializzabili) e bytes su socket */
