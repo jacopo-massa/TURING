@@ -49,10 +49,12 @@ public class ChatTask implements Runnable
             group = InetAddress.getByName(address);
 
             //unisco il client al gruppo all'indirizzo 'address'
+            System.out.println(System.getProperty("java.net.preferIPv4Stack"));
             socket.joinGroup(group);
         }
         catch(IOException e)
         {
+            e.printStackTrace();
             System.err.println("Error opening Multicast Socket");
             return;
         }

@@ -12,13 +12,13 @@ public class MyFrame extends JFrame
     private MyFrame oldFrame;
     private JPanel p;
 
-    public MyFrame(MyFrame oldFrame, FrameCode frame)
+    public MyFrame(MyFrame oldFrame, frameCode frame)
     {
         super();
         String title = "TURING ";
-        if(frame == FrameCode.SERVER)
+        if(frame == frameCode.SERVER)
             title += "SERVER";
-        else if(frame == FrameCode.LOGIN)
+        else if(frame == frameCode.LOGIN)
             title += "CLIENT";
         else
             title += "CLIENT - " + MainClient.username;

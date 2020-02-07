@@ -2,7 +2,7 @@ package GUI;
 
 import Client.MainClient;
 import Utils.Message;
-import Utils.OpCode;
+import Utils.opCode;
 import Utils.Operation;
 import Utils.Utils;
 
@@ -146,8 +146,8 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
 
                     Operation request = new Operation(usr);
                     request.setPassword(psw);
-                    request.setCode(OpCode.FILE_LIST);
-                    OpCode ans;
+                    request.setCode(opCode.FILE_LIST);
+                    opCode ans;
                     /* se voglio effettuare un invito, mi assicuro di ricevere solo i documenti
                        di cui sono proprietario, impostanto owner = username, come si aspetta il server
                       */
@@ -167,12 +167,12 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                     {
                         System.err.println("Can't download file list");
                         ex.printStackTrace();
-                        ans = OpCode.OP_FAIL;
+                        ans = opCode.OP_FAIL;
                     }
 
                     ans = MainClient.getAnswer();
 
-                    if(ans != OpCode.OP_OK)
+                    if(ans != opCode.OP_OK)
                     {
                         JOptionPane.showMessageDialog(this,"Lista dei file gestibili non scaricata correttamente","WARNING",JOptionPane.WARNING_MESSAGE);
                         break;
@@ -186,7 +186,7 @@ public class TuringPanel extends JPanel implements ActionListener, KeyListener
                 }
                 case "CREATE":
                 {
-                    Utils.showNextFrame(FrameCode.valueOf(cmd),this);
+                    Utils.showNextFrame(frameCode.valueOf(cmd),this);
                     break;
                 }
 

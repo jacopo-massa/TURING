@@ -1,7 +1,7 @@
 package GUI;
 
 import Client.MainClient;
-import Utils.OpCode;
+import Utils.opCode;
 import Utils.Utils;
 
 import javax.swing.*;
@@ -13,7 +13,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
 
     private JComboBox name;
     private JSpinner nsection;
-    private FrameCode operation;
+    private frameCode operation;
 
     private String[] titles;
     private String[] owners;
@@ -21,7 +21,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
 
     private String usr;
 
-    ManagePanel(FrameCode operation)
+    ManagePanel(frameCode operation)
     {
         ArrayList<String> clientFiles = TuringPanel.clientFiles;
         this.operation = operation;
@@ -35,7 +35,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
 
 
         String text = "Inserisci i dati del documento da ";
-        if(operation == FrameCode.SHOW)
+        if(operation == frameCode.SHOW)
             text += "visualizzare";
         else
             text += "modificare";
@@ -71,7 +71,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
         nsection = new JSpinner(model);
         centerPanel.add(nsection);
 
-        if(operation == FrameCode.SHOW)
+        if(operation == frameCode.SHOW)
         {
             JButton showButton = new JButton("Show All");
             southPanel.add(showButton);
@@ -112,7 +112,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
                     owner = owners[selectedIndex];
 
                     section = (!cmd.equals("SHOW ALL")) ? (Integer) nsection.getValue() : max_sections[selectedIndex];
-                    OpCode op = (!cmd.equals("SHOW ALL")) ? OpCode.valueOf(operation.toString()) : OpCode.SHOW_ALL;
+                    opCode op = (!cmd.equals("SHOW ALL")) ? opCode.valueOf(operation.toString()) : opCode.SHOW_ALL;
 
                     switch(MainClient.manageDocument(op, filename, owner, section))
                     {
@@ -132,7 +132,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
 
                         case SECTION_EDITING:
                         {
-                            if(!operation.equals(FrameCode.EDIT))
+                            if(!operation.equals(frameCode.EDIT))
                                 canreceive = true;
 
                             JOptionPane.showMessageDialog(this,"Sezione in fase di editing","WARNING",JOptionPane.WARNING_MESSAGE);
@@ -152,7 +152,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
                         {
                             canreceive = true;
 
-                            if(operation == FrameCode.EDIT)
+                            if(operation == frameCode.EDIT)
                             {
                                 TuringPanel.editingFilename = filename + "_" + owner + "_" + section;
                                 TuringPanel.editButton.setEnabled(false);
@@ -170,7 +170,7 @@ public class ManagePanel extends JPanel implements ActionListener, ItemListener,
 
                         for (int i = (showAll) ? 1 : section; i <= section; i++)
                         {
-                            if (MainClient.recvSection(filename, owner, i) == OpCode.SECTION_EDITING)
+                            if (MainClient.recvSection(filename, owner, i) == opCode.SECTION_EDITING)
                                 editedSections.add(i);
                         }
 

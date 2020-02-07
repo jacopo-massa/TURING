@@ -72,7 +72,7 @@ public class LoginPanel extends JPanel implements ActionListener
                     {
                         case OP_OK:
                         {
-                            Utils.showNextFrame(FrameCode.TURING,this);
+                            Utils.showNextFrame(frameCode.TURING,this);
                             break;
                         }
 
@@ -91,7 +91,7 @@ public class LoginPanel extends JPanel implements ActionListener
                     {
                         case OP_OK:
                         {
-                            Utils.showNextFrame(FrameCode.TURING,this);
+                            Utils.showNextFrame(frameCode.TURING,this);
                             break;
                         }
 

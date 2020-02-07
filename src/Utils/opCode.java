@@ -3,7 +3,7 @@ package Utils;
 /**
  * enum che rappresenta i codici delle operazioni principali e i loro esiti (positivi e negativi)
  */
-public enum OpCode
+public enum opCode
 {
     /* operazioni principali */
 
